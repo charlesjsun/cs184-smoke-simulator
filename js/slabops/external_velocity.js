@@ -80,7 +80,7 @@ class ExternalVelocity {
             
             float factor = gauss(p, r);
 
-            vec2 added = vel * vec2(width, height) * factor * dt * 2.0;
+            vec2 added = vel * vec2(width, height) * factor * dt * 0.1;
 
             gl_FragColor = vec4(original + added, 0.0, 1.0);
         }
@@ -112,7 +112,7 @@ class ExternalVelocity {
             
             float factor = exp(-dot(p, p) / r);
 
-            vec2 added = vel * vec2(width, height) * factor * dt * 2.0;
+            vec2 added = vel * vec2(width, height) * factor * dt * 0.1;
 
             gl_FragColor = vec4(original + added, 0.0, 1.0);
         }

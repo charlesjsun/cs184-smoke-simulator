@@ -27,7 +27,7 @@ class Solver {
         this.density = new Slab(renderer, width, height, wrap);
 
         this.advection = new Advection(renderer, width, height, this.dt, this.dx);
-        this.jacobi = new Jacobi(renderer, width, height, 50);
+        this.jacobi = new Jacobi(renderer, width, height, 30);
         this.divergence = new Divergence(renderer, width, height, this.dx);
         this.gradientSubtraction = new GradientSubtraction(renderer, width, height, this.dx);
 

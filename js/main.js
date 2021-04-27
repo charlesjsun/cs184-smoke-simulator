@@ -40,7 +40,7 @@ function init() {
     const solverWidth = Math.floor(solverHeight * width / height);
 
     wrap = true
-    donut = true;
+    donut = false;
 
     solver = new Solver(renderer, solverWidth, solverHeight, wrap);
 
@@ -48,7 +48,7 @@ function init() {
     if (donut) {
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50);
         camera.position.z = 30;
-        geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+        geometry = new THREE.TorusGeometry(12, 5, 16, 100);
     } else {
         camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
         geometry = new THREE.PlaneGeometry(2, 2);
@@ -74,7 +74,7 @@ function init() {
     raycaster = new THREE.Raycaster();
 
     smokeColor = new THREE.Vector3(1.0, 1.0, 1.0);
-    smokeRadius = 0.25;
+    smokeRadius = 0.15;
 
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('mousedown', onMouseDown);
@@ -149,7 +149,7 @@ function getSolverPos(mouseX, mouseY) {
 
 }
 
-function getSolverVelocity(pos, prevPos, dt) {
+function getSolverVelocity(pos, prevPos) {
 
     if (wrap) {
         let dX = solverPos.x - prevSolverPos.x;
@@ -160,11 +160,11 @@ function getSolverVelocity(pos, prevPos, dt) {
         if (Math.abs(dY) > 0.5) {
             dY = -Math.sign(dY) * (1.0 - Math.abs(dY));
         }
-        return new THREE.Vector2(dX / dt, dY / dt);
+        return new THREE.Vector2(dX, dY);
     }
 
 
-    return new THREE.Vector2((solverPos.x - prevSolverPos.x) / dt, (solverPos.y - prevSolverPos.y) / dt);
+    return new THREE.Vector2(solverPos.x - prevSolverPos.x, solverPos.y - prevSolverPos.y);
 
 }
 
@@ -179,16 +179,17 @@ function animate(time) {
         solverPos = newSolverPos;
     }
 
-    const dt = currTime - prevTime;
     if (mouse0Down) {
         solver.addExternalDensity(solverPos, smokeColor, smokeRadius);
     }
     if (mouse1Down) {
-        if (dt > 0.1) {
-            const vel = getSolverVelocity(solverPos, prevSolverPos, dt);
-            solver.addExternalVelocity(solverPos, vel, smokeRadius);
-        }
+        const vel = getSolverVelocity(solverPos, prevSolverPos);
+        solver.addExternalVelocity(solverPos, vel, smokeRadius);
     }
+
+    smokeColor.x = Math.min(Math.max(smokeColor.x + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
+    smokeColor.y = Math.min(Math.max(smokeColor.y + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
+    smokeColor.z = Math.min(Math.max(smokeColor.z + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
 
     solver.step(time);
     

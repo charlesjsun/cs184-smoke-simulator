@@ -9,9 +9,9 @@ class Slab {
         this.read = new THREE.WebGLRenderTarget(width, height, {
             wrapS: wrap ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping,
             wrapT: wrap ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping,
-            magFilter: THREE.NearestFilter,
-            // minFilter: THREE.NearestFilter,
+            // magFilter: THREE.NearestFilter,
             magFilter: THREE.LinearFilter,
+            minFilter: THREE.NearestFilter,
             format: THREE.RGBAFormat,
             type: THREE.FloatType,
             depthBuffer: false,
