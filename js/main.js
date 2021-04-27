@@ -40,7 +40,7 @@ function init() {
     const solverWidth = Math.floor(solverHeight * width / height);
 
     wrap = true
-    donut = false;
+    donut = true;
 
     solver = new Solver(renderer, solverWidth, solverHeight, wrap);
 
@@ -162,7 +162,6 @@ function getSolverVelocity(pos, prevPos) {
         }
         return new THREE.Vector2(dX, dY);
     }
-
 
     return new THREE.Vector2(solverPos.x - prevSolverPos.x, solverPos.y - prevSolverPos.y);
 
