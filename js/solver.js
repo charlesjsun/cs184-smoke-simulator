@@ -75,9 +75,9 @@ class Solver {
 
     }
 
-    addExternalDensity(x, y, color, radius) {
+    addExternalDensity(pos, color, radius) {
 
-        this.externalDensityPos = new THREE.Vector2(x, y);
+        this.externalDensityPos = pos;
         this.externalDensityColor = color;
         this.externalDensityRadius = radius;
 
@@ -91,11 +91,11 @@ class Solver {
     
     }
 
-    addExternalVelocity(x, y, vx, vy, radius) {
+    addExternalVelocity(pos, vel, radius) {
 
-        this.externalVelocityPos = new THREE.Vector2(x, y);
+        this.externalVelocityPos = pos;
         this.externalVelocityRadius = radius;
-        this.externalVelocityVelocity = new THREE.Vector2(vx, vy);
+        this.externalVelocityVelocity = vel;
         
         this.shouldAddExternalVelocity = true;
 
