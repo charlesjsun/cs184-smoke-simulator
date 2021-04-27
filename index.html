@@ -1,54 +1,19 @@
 <!DOCTYPE html>
 <html>
-    <!-- <script src="index.js" type="module"></script> -->
 	<head>
 		<meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
 		<title>Smoke</title>
 		<style>
 			body { margin: 0; }
 		</style>
 	</head>
 	<body>
-        <!-- <script src="./js/main.js" type="module"></script> -->
         <script type="module">
-            import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
-
-            import {init, animation, camera, scene, renderer, geometry, material, mesh} from "./js/main.js"
-
-            // let camera, scene, renderer;
-            // let geometry, material, mesh;
-
+            import { init, animate } from "./js/main.js"
             init();
-
-            // function init() {
-
-            //     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
-            //     camera.position.z = 1;
-
-            //     scene = new THREE.Scene();
-
-            //     geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
-            //     material = new THREE.MeshNormalMaterial();
-
-            //     mesh = new THREE.Mesh( geometry, material );
-            //     scene.add( mesh );
-
-            //     renderer = new THREE.WebGLRenderer( { antialias: true } );
-            //     renderer.setSize( window.innerWidth, window.innerHeight );
-            //     renderer.setAnimationLoop( animation );
-            //     document.body.appendChild( renderer.domElement );
-
-            // }
-
-            // function animation(time) {
-
-            //     mesh.rotation.x = time / 2000;
-            //     mesh.rotation.y = time / 1000;
-
-            //     renderer.render(scene, camera);
-
-            // }
-
+            animate();
         </script>
 	</body>
 </html>
