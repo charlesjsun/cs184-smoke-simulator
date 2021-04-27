@@ -80,6 +80,7 @@ function init() {
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('mousemove', onMouseMove);
+    document.addEventListener("contextmenu", onContextMenu, false);
 
 }
 
@@ -103,7 +104,7 @@ function onMouseDown(e) {
     if (e.button == 0) {
         mouse0Down = true;
     } 
-    if (e.button == 1) {
+    if (e.button == 2) {
         mouse1Down = true
     }
 
@@ -122,11 +123,15 @@ function onMouseUp(e) {
         mouse0Down = false;
         solver.removeExternalDensity();
     } 
-    if (e.button == 1) {
+    if (e.button == 2) {
         mouse1Down = false;
         solver.removeExternalVelocity();
     }
 
+}
+
+function onContextMenu(e) {
+    e.preventDefault();
 }
 
 function getSolverPos(mouseX, mouseY) {
