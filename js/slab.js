@@ -7,6 +7,8 @@ class Slab {
         this.renderer = renderer;
 
         this.read = new THREE.WebGLRenderTarget(width, height, {
+            wrapS: THREE.RepeatWrapping,
+            wrapT: THREE.RepeatWrapping,
             magFilter: THREE.NearestFilter,
             // minFilter: THREE.NearestFilter,
             magFilter: THREE.LinearFilter,
@@ -15,14 +17,7 @@ class Slab {
             depthBuffer: false,
         });
 
-        this.write = new THREE.WebGLRenderTarget(width, height, {
-            magFilter: THREE.NearestFilter,
-            // minFilter: THREE.NearestFilter,
-            magFilter: THREE.LinearFilter,
-            format: THREE.RGBAFormat,
-            type: THREE.FloatType,
-            depthBuffer: false,
-        });
+        this.write = this.read.clone();
 
     }
 

@@ -40,8 +40,6 @@ class ExternalVelocity {
         this.uniforms.vel.value = vel;
         this.uniforms.radius.value = radius;
 
-        console.log(vel);
-
         this.renderer.setRenderTarget(output.write);
         this.renderer.render(this.scene, this.camera);
         output.swap();
