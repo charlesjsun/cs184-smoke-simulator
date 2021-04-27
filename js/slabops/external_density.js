@@ -68,14 +68,17 @@ class ExternalDensity {
         uniform vec3 color;
         uniform float radius;
 
+        float gauss(vec2 p, float r) {
+            return exp(-dot(p, p) / r);
+        }
+
         void main() {
             vec3 original = texture2D(w, v_uv).xyz;
             
             float r = radius * width;
             vec2 p = (v_uv - pos) * vec2(width, height);
             
-            float dist = length(p);
-            float factor = max(r - dist, 0.0) / r;
+            float factor = gauss(p, r);
 
             vec3 added = color * factor * dt;
 

@@ -14,7 +14,7 @@ class ExternalVelocity {
             dt: { value: dt },
             velocity: { type: "t" },
             pos: { value: new THREE.Vector2() },
-            magnitude: { value: 1.0 },
+            vel: { value: new THREE.Vector2() },
             radius: { value: 0.01 },
         };
 
@@ -33,12 +33,14 @@ class ExternalVelocity {
     
     }
 
-    compute(velocity, output, pos, magnitude, radius) {
+    compute(velocity, output, pos, vel, radius) {
 
         this.uniforms.velocity.value = velocity.read.texture;
         this.uniforms.pos.value = pos;
-        this.uniforms.magnitude.value = magnitude;
+        this.uniforms.vel.value = vel;
         this.uniforms.radius.value = radius;
+
+        console.log(vel);
 
         this.renderer.setRenderTarget(output.write);
         this.renderer.render(this.scene, this.camera);
@@ -65,11 +67,10 @@ class ExternalVelocity {
         uniform sampler2D velocity;
         
         uniform vec2 pos;
-        uniform float magnitude;
+        uniform vec2 vel;
         uniform float radius;
 
-        float gauss(vec2 p, float r)
-        {
+        float gauss(vec2 p, float r) {
             return exp(-dot(p, p) / r);
         }
 
@@ -79,21 +80,11 @@ class ExternalVelocity {
             float r = radius * width;
             vec2 p = (v_uv - pos) * vec2(width, height);
             
-            float dist = length(p);
-            float factor = max(r - dist, 0.0) / r;
+            float factor = gauss(p, r);
 
-            // vec2 dir = p / dist;
+            vec2 added = vel * vec2(width, height) * factor * dt * 10.0;
 
-            // vec2 added = dir * magnitude * dt;
-
-            // gl_FragColor = vec4(original * (1.0 - factor) + added * factor, 0.0, 1.0);
-            // gl_FragColor = vec4(original * (1.0 - factor), 0.0, 1.0);
-            // gl_FragColor = vec4(original + vec2(0.02, 0.0) * factor, 0.0, 1.0);
-
-            factor = gauss(p, r * 1.0);
-
-            gl_FragColor = vec4(original + vec2(0.02, 0.0) * factor, 0.0, 1.0);
-            // gl_FragColor = vec4(original + vec2(0.02, 0.0), 0.0, 1.0);
+            gl_FragColor = vec4(original + added, 0.0, 1.0);
         }
     `;
 

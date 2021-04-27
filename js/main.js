@@ -10,8 +10,14 @@ let solver;
 let mouse0Down;
 let mouse1Down;
 let mouseX, mouseY;
+let prevMouseX, prevMouseY;
+let currTime;
+let prevTime;
+let mouseTime;
+
 let smokeColor;
 let smokeRadius;
+
 
 function init() {
 
@@ -45,6 +51,11 @@ function init() {
     mouse1Down = false;
     mouseX = 0.0;
     mouseY = 0.0;
+    prevMouseX = 0.0;
+    prevMouseY = 0.0;
+    currTime = 1.0;
+    prevTime = 0.0;
+    mouseTime = 0.0;
 
     smokeColor = new THREE.Vector3(1.0, 1.0, 1.0);
     smokeRadius = 0.02;
@@ -69,18 +80,19 @@ function onWindowResize() {
 }
 
 function onMouseDown(e) {
+    
+    prevMouseX = mouseX;
+    prevMouseY = mouseY;
+    mouseX = e.offsetX / window.innerWidth;
+    mouseY = 1.0 - e.offsetY / window.innerHeight;
+    mouseTime = currTime;
 
     if (e.button == 0) {
         mouse0Down = true;
-        mouseX = e.offsetX / window.innerWidth;
-        mouseY = 1.0 - e.offsetY / window.innerHeight;
         solver.addExternalDensity(mouseX, mouseY, smokeColor, smokeRadius);
     } 
     if (e.button == 1) {
         mouse1Down = true
-        mouseX = e.offsetX / window.innerWidth;
-        mouseY = 1.0 - e.offsetY / window.innerHeight;
-        solver.addExternalVelocity(mouseX, mouseY, smokeColor, smokeRadius);
     }
 
 
@@ -88,14 +100,23 @@ function onMouseDown(e) {
 
 function onMouseMove(e) {
 
+    prevMouseX = mouseX;
+    prevMouseY = mouseY;
     mouseX = e.offsetX / window.innerWidth;
     mouseY = 1.0 - e.offsetY / window.innerHeight;
     
+    const dt = currTime - mouseTime;
+    mouseTime = currTime
+
     if (mouse0Down) {
         solver.addExternalDensity(mouseX, mouseY, smokeColor, smokeRadius);
     }
     if (mouse1Down) {
-        solver.addExternalVelocity(mouseX, mouseY, smokeRadius, smokeRadius);
+        if (dt > 0.1) {
+            const velocityX = (mouseX - prevMouseX) / dt;
+            const velocityY = (mouseY - prevMouseY) / dt;
+            solver.addExternalVelocity(mouseX, mouseY, velocityX, velocityY, smokeRadius);
+        }
     }
 
 }
@@ -116,6 +137,9 @@ function onMouseUp(e) {
 
 function animate(time) {
     
+    prevTime = currTime;
+    currTime = time;
+
     solver.step(time);
     
     // mesh.rotation.y = time / 2000.0;

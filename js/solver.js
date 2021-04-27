@@ -18,8 +18,8 @@ class Solver {
 
         this.dt = 1.0;
         this.dx = 1.0;
-        // this.dissipation = 0.99;
-        this.dissipation = 1.0;
+        this.dissipation = 0.99;
+        // this.dissipation = 1.0;
         
         this.pressure = new Slab(renderer, width, height);
         this.velocity = new Slab(renderer, width, height);
@@ -42,7 +42,7 @@ class Solver {
         this.shouldAddExternalVelocity = false;
         this.externalVelocityPos = null;
         this.externalVelocityRadius = 0.01;
-        this.externalVelocityMagnitude = 0.01;
+        this.externalVelocityVelocity = null;
 
     }
 
@@ -63,7 +63,7 @@ class Solver {
         if (this.shouldAddExternalVelocity) {
             this.externalVelocity.compute(
                 this.velocity, this.velocity, 
-                this.externalVelocityPos, this.externalVelocityMagnitude, this.externalVelocityRadius);
+                this.externalVelocityPos, this.externalVelocityVelocity, this.externalVelocityRadius);
         }
 
         // projection
@@ -91,11 +91,11 @@ class Solver {
     
     }
 
-    addExternalVelocity(x, y, magnitude, radius) {
+    addExternalVelocity(x, y, vx, vy, radius) {
 
         this.externalVelocityPos = new THREE.Vector2(x, y);
         this.externalVelocityRadius = radius;
-        this.externalVelocityMagnitude = magnitude;
+        this.externalVelocityVelocity = new THREE.Vector2(vx, vy);
         
         this.shouldAddExternalVelocity = true;
 
@@ -109,8 +109,9 @@ class Solver {
 
     getTexture() {
 
-        // return this.density.read.texture;
-        return this.velocity.read.texture;
+        return this.density.read.texture;
+        // return this.velocityDivergence.read.texture;
+        // return this.velocity.read.texture;
 
     }
 

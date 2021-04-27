@@ -67,16 +67,16 @@ class Advection {
         uniform sampler2D advected; // the output quantity field we are advecting
         uniform sampler2D velocity; 
 
-        vec2 bilerp(sampler2D d, vec2 p) {
+        vec3 bilerp(sampler2D d, vec2 p) {
             vec4 ij; // i0, j0, i1, j1
             ij.xy = floor(p - 0.5) + 0.5;
             ij.zw = ij.xy + 1.0;
 
             vec4 uv = ij / vec4(width, height, width, height);
-            vec2 d11 = texture2D(d, uv.xy).xy;
-            vec2 d21 = texture2D(d, uv.zy).xy;
-            vec2 d12 = texture2D(d, uv.xw).xy;
-            vec2 d22 = texture2D(d, uv.zw).xy;
+            vec3 d11 = texture2D(d, uv.xy).xyz;
+            vec3 d21 = texture2D(d, uv.zy).xyz;
+            vec3 d12 = texture2D(d, uv.xw).xyz;
+            vec3 d22 = texture2D(d, uv.zw).xyz;
 
             vec2 a = p - ij.xy;
 
@@ -86,7 +86,7 @@ class Advection {
         void main() {
             float rdx = 1.0 / dx;
             vec2 pos = v_uv * vec2(width, height) - dt * rdx * texture2D(velocity, v_uv).xy;
-            gl_FragColor = vec4(dissipation * bilerp(advected, pos), 0.0, 1.0);
+            gl_FragColor = vec4(dissipation * bilerp(advected, pos), 1.0);
         }
     `
 

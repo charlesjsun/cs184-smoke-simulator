@@ -64,8 +64,8 @@ class Divergence {
 
             float wL = texture2D(w, v_uv - u_offset).x;
             float wR = texture2D(w, v_uv + u_offset).x;
-            float wB = texture2D(w, v_uv - v_offset).x;
-            float wT = texture2D(w, v_uv + v_offset).x;
+            float wB = texture2D(w, v_uv - v_offset).y;
+            float wT = texture2D(w, v_uv + v_offset).y;
 
             float halfrdx = 0.5 / dx;
 
