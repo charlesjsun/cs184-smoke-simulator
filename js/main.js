@@ -20,6 +20,9 @@ let prevTime;
 let smokeColor;
 let smokeRadius;
 
+let wrap;
+let donut;
+
 let raycaster;
 
 function init() {
@@ -36,13 +39,20 @@ function init() {
     const solverHeight = 250;
     const solverWidth = Math.floor(solverHeight * width / height);
 
-    solver = new Solver(renderer, solverWidth, solverHeight);
+    wrap = true
+    donut = true;
 
-    // camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    // const geometry = new THREE.PlaneGeometry(2, 2);
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50);
-    camera.position.z = 30;
-    const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+    solver = new Solver(renderer, solverWidth, solverHeight, wrap);
+
+    let geometry;
+    if (donut) {
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50);
+        camera.position.z = 30;
+        geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+    } else {
+        camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        geometry = new THREE.PlaneGeometry(2, 2);
+    }
 
     material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
     mesh = new THREE.Mesh(geometry, material);
@@ -139,6 +149,25 @@ function getSolverPos(mouseX, mouseY) {
 
 }
 
+function getSolverVelocity(pos, prevPos, dt) {
+
+    if (wrap) {
+        let dX = solverPos.x - prevSolverPos.x;
+        if (Math.abs(dX) > 0.5) {
+            dX = -Math.sign(dX) * (1.0 - Math.abs(dX));
+        }
+        let dY = solverPos.y - prevSolverPos.y;
+        if (Math.abs(dY) > 0.5) {
+            dY = -Math.sign(dY) * (1.0 - Math.abs(dY));
+        }
+        return new THREE.Vector2(dX / dt, dY / dt);
+    }
+
+
+    return new THREE.Vector2((solverPos.x - prevSolverPos.x) / dt, (solverPos.y - prevSolverPos.y) / dt);
+
+}
+
 function animate(time) {
     
     prevTime = currTime;
@@ -156,14 +185,16 @@ function animate(time) {
     }
     if (mouse1Down) {
         if (dt > 0.1) {
-            const vel = new THREE.Vector2((solverPos.x - prevSolverPos.x) / dt, (solverPos.y - prevSolverPos.y) / dt);
+            const vel = getSolverVelocity(solverPos, prevSolverPos, dt);
             solver.addExternalVelocity(solverPos, vel, smokeRadius);
         }
     }
 
     solver.step(time);
     
-    mesh.rotation.y = time / 5000.0;
+    if (donut) {
+        mesh.rotation.y = time / 5000.0;
+    }
     
     material.setValues({map: solver.getTexture()});
     

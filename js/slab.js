@@ -2,13 +2,13 @@ import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 
 class Slab {
 
-    constructor(renderer, width, height) {
+    constructor(renderer, width, height, wrap) {
 
         this.renderer = renderer;
 
         this.read = new THREE.WebGLRenderTarget(width, height, {
-            wrapS: THREE.RepeatWrapping,
-            wrapT: THREE.RepeatWrapping,
+            wrapS: wrap ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping,
+            wrapT: wrap ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping,
             magFilter: THREE.NearestFilter,
             // minFilter: THREE.NearestFilter,
             magFilter: THREE.LinearFilter,

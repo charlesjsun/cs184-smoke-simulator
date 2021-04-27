@@ -9,7 +9,7 @@ import { Jacobi } from "./slabops/jacobi.js";
 
 class Solver {
     
-    constructor(renderer, width, height) {
+    constructor(renderer, width, height, wrap) {
         
         this.renderer = renderer;
 
@@ -21,18 +21,18 @@ class Solver {
         this.dissipation = 0.99;
         // this.dissipation = 1.0;
         
-        this.pressure = new Slab(renderer, width, height);
-        this.velocity = new Slab(renderer, width, height);
-        this.velocityDivergence = new Slab(renderer, width, height);
-        this.density = new Slab(renderer, width, height);
+        this.pressure = new Slab(renderer, width, height, wrap);
+        this.velocity = new Slab(renderer, width, height, wrap);
+        this.velocityDivergence = new Slab(renderer, width, height, wrap);
+        this.density = new Slab(renderer, width, height, wrap);
 
         this.advection = new Advection(renderer, width, height, this.dt, this.dx);
         this.jacobi = new Jacobi(renderer, width, height, 50);
         this.divergence = new Divergence(renderer, width, height, this.dx);
         this.gradientSubtraction = new GradientSubtraction(renderer, width, height, this.dx);
 
-        this.externalDensity = new ExternalDensity(renderer, width, height, this.dt);
-        this.externalVelocity = new ExternalVelocity(renderer, width, height, this.dt);
+        this.externalDensity = new ExternalDensity(renderer, width, height, this.dt, wrap);
+        this.externalVelocity = new ExternalVelocity(renderer, width, height, this.dt, wrap);
 
         this.shouldAddExternalDensity = false;
         this.externalDensityPos = null;

@@ -2,7 +2,7 @@ import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 
 class ExternalDensity {
 
-    constructor(renderer, width, height, dt) {
+    constructor(renderer, width, height, dt, wrap) {
         
         this.renderer = renderer;
 
@@ -21,7 +21,7 @@ class ExternalDensity {
         this.material = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: this.vertexShader,
-            fragmentShader: this.fragmentShader
+            fragmentShader: wrap ? this.fragmentShaderWrap : this.fragmentShader
         });
 
         this.plane = new THREE.PlaneGeometry(2, 2);
@@ -79,6 +79,38 @@ class ExternalDensity {
             vec2 p = (v_uv - pos) * vec2(width, height);
             
             float factor = gauss(p, r);
+
+            vec3 added = color * factor * dt;
+
+            gl_FragColor = vec4(original + added, 1.0);
+        }
+    `;
+
+    fragmentShaderWrap = `
+        varying vec2 v_uv;
+
+        uniform float width;
+        uniform float height;
+        
+        uniform float dt;
+
+        uniform sampler2D w;
+        
+        uniform vec2 pos;
+        uniform vec3 color;
+        uniform float radius;
+
+        void main() {
+            vec3 original = texture2D(w, v_uv).xyz;
+            
+            float r = radius * width;
+            
+            vec2 ad = abs(v_uv - pos);
+            vec2 wd = 0.5 - abs(ad - 0.5);
+
+            vec2 p = wd * vec2(width, height);
+
+            float factor = exp(-dot(p, p) / r);
 
             vec3 added = color * factor * dt;
 
