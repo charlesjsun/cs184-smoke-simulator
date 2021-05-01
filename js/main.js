@@ -39,8 +39,8 @@ function init() {
     const solverHeight = 250;
     const solverWidth = Math.floor(solverHeight * width / height);
 
-    wrap = false;
-    donut = false;
+    wrap = true;
+    donut = true;
 
     solver = new Solver(renderer, solverWidth, solverHeight, wrap);
 
@@ -189,7 +189,7 @@ function animate(time) {
         solver.addExternalVelocity(solverPos, vel, smokeRadius);
     }
     if (mouse0Down) {
-        solver.addExternalTemperature(solverPos, 0.05, smokeRadius);
+        solver.addExternalTemperature(solverPos, 0.01, smokeRadius);
     }
 
     smokeColor.x = Math.min(Math.max(smokeColor.x + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
