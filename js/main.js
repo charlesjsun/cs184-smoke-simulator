@@ -74,7 +74,7 @@ function init() {
     raycaster = new THREE.Raycaster();
 
     smokeColor = new THREE.Vector3(1.0, 1.0, 1.0);
-    smokeRadius = 0.15;
+    smokeRadius = 0.05;
 
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('mousedown', onMouseDown);
@@ -121,6 +121,8 @@ function onMouseUp(e) {
     if (e.button == 0) {
         mouse0Down = false;
         solver.removeExternalDensity();
+        solver.removeExternalTemperature();
+        solver.removeExternalVelocity();
     } 
     if (e.button == 1) {
         mouse1Down = false;
@@ -182,9 +184,12 @@ function animate(time) {
     if (mouse0Down) {
         solver.addExternalDensity(solverPos, smokeColor, smokeRadius);
     }
-    if (mouse1Down) {
+    if (mouse0Down) {
         const vel = getSolverVelocity(solverPos, prevSolverPos);
         solver.addExternalVelocity(solverPos, vel, smokeRadius);
+    }
+    if (mouse0Down) {
+        solver.addExternalTemperature(solverPos, 0.05, smokeRadius);
     }
 
     smokeColor.x = Math.min(Math.max(smokeColor.x + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
