@@ -1,11 +1,13 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 import { Slab } from "./slab.js";
 import { Advection } from "./slabops/advection.js"
+import { Curl } from "./slabops/curl.js"
 import { Divergence } from "./slabops/divergence.js";
 import { ExternalDensity } from "./slabops/external_density.js";
 import { ExternalVelocity } from "./slabops/external_velocity.js";
 import { GradientSubtraction } from "./slabops/gradient_subtraction.js";
 import { Jacobi } from "./slabops/jacobi.js";
+import { VorticityConf } from "./slabops/voriticity_conf.js"
 
 class Solver {
     
@@ -24,10 +26,13 @@ class Solver {
         this.pressure = new Slab(renderer, width, height, wrap);
         this.velocity = new Slab(renderer, width, height, wrap);
         this.velocityDivergence = new Slab(renderer, width, height, wrap);
+        this.vorticity = new Slab(renderer, width, height, wrap);
         this.density = new Slab(renderer, width, height, wrap);
 
         this.advection = new Advection(renderer, width, height, this.dt, this.dx);
         this.jacobi = new Jacobi(renderer, width, height, 30);
+        this.curl = new Curl(renderer, width, height, this.dx);
+        this.vorticityConf = new VorticityConf(renderer, width, height, this.dt, this.dx);
         this.divergence = new Divergence(renderer, width, height, this.dx);
         this.gradientSubtraction = new GradientSubtraction(renderer, width, height, this.dx);
 
@@ -65,6 +70,10 @@ class Solver {
                 this.velocity, this.velocity, 
                 this.externalVelocityPos, this.externalVelocityVelocity, this.externalVelocityRadius);
         }
+
+        // this.curl.compute(this.velocity, this.vorticity);
+        // todo do boundary check
+        // this.vorticityConf.compute(this.velocity, this.vorticity, this.velocity);
 
         // projection
         this.divergence.compute(this.velocity, this.velocityDivergence);
@@ -109,9 +118,9 @@ class Solver {
 
     getTexture() {
 
-        return this.density.read.texture;
+        // return this.density.read.texture;
         // return this.velocityDivergence.read.texture;
-        // return this.velocity.read.texture;
+        return this.velocity.read.texture;
 
     }
 

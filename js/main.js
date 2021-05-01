@@ -39,7 +39,7 @@ function init() {
     const solverHeight = 250;
     const solverWidth = Math.floor(solverHeight * width / height);
 
-    wrap = true
+    wrap = false;
     donut = false;
 
     solver = new Solver(renderer, solverWidth, solverHeight, wrap);
@@ -103,7 +103,7 @@ function onMouseDown(e) {
     if (e.button == 0) {
         mouse0Down = true;
     } 
-    if (e.button == 1) {
+    if (e.button == 2) {
         mouse1Down = true
     }
 
