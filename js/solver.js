@@ -20,6 +20,7 @@ class Solver {
         this.width = width;
         this.height = height;
         this.radius = 0.01;
+        this.wrap = wrap;
 
         this.dt = 1.0;
         this.dx = 1.0;
@@ -93,8 +94,13 @@ class Solver {
 
         this.curl.compute(this.velocity, this.vorticity);
         // todo do boundary check
-        this.vorticityConf.compute(this.velocity, this.vorticity, this.velocity);
-
+        if (this.wrap) {
+            this.vorticityConf.compute(this.velocity, this.vorticity, 0.0, this.velocity);
+        }
+        else {
+            this.vorticityConf.compute(this.velocity, this.vorticity, 0.0, this.velocity);
+        }
+        
         // projection
         this.divergence.compute(this.velocity, this.velocityDivergence);
         this.pressure.clear();

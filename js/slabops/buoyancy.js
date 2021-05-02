@@ -71,11 +71,11 @@ class Buoyancy {
         void main() {
             float t = texture2D(temperature, v_uv).x;
             vec4 v = texture2D(velocity, v_uv);
-
+            // gl_Fracoord is v_uv * (width, height)
             gl_FragColor = v;
 
             float d = texture2D(density, v_uv).x;
-            gl_FragColor += vec4(0.0, sigma * (t - ambientTemperature) - d * kappa, 0.0, 1.0);
+            gl_FragColor += vec4(sigma * (t - ambientTemperature) - d * kappa, 0.0 , 0.0, 1.0);
         }
     `;
 
