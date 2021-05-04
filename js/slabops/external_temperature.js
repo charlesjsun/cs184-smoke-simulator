@@ -97,11 +97,15 @@ class ExternalTemperature {
         uniform sampler2D w;
         
         uniform vec2 pos;
-        uniform vec3 color;
+        uniform float temp;
         uniform float radius;
 
+        float gauss(vec2 p, float r) {
+            return exp(-dot(p, p) / r);
+        }
+
         void main() {
-            vec3 original = texture2D(w, v_uv).xyz;
+            float original = texture2D(w, v_uv).x;
             
             float r = radius * width;
             
@@ -110,11 +114,11 @@ class ExternalTemperature {
 
             vec2 p = wd * vec2(width, height);
 
-            float factor = exp(-dot(p, p) / r);
+            float factor = gauss(p, r);
 
-            vec3 added = color * factor * dt;
+            float added = temp * factor * dt;
 
-            gl_FragColor = vec4(original + added, 1.0);
+            gl_FragColor = vec4(original + added, 0.0, 0.0, 1.0);
         }
     `;
 

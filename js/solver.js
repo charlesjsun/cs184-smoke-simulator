@@ -35,7 +35,7 @@ class Solver {
         this.temperature = new Slab(renderer, width, height, wrap);
 
         this.advection = new Advection(renderer, width, height, this.dt, this.dx);
-        this.buoyancy = new Buoyancy(renderer, width, height);
+        this.buoyancy = new Buoyancy(renderer, width, height, wrap);
         this.jacobi = new Jacobi(renderer, width, height, 20);
         this.curl = new Curl(renderer, width, height, this.dx);
         this.vorticityConf = new VorticityConf(renderer, width, height, this.dt, this.dx);

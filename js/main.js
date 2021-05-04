@@ -179,18 +179,19 @@ function animate(time) {
     let newSolverPos = getSolverPos(mouseX, mouseY);
     if (newSolverPos != null) {
         solverPos = newSolverPos;
+        if (mouse0Down) {
+            solver.addExternalDensity(solverPos, smokeColor, smokeRadius);
+            const vel = getSolverVelocity(solverPos, prevSolverPos);
+            solver.addExternalVelocity(solverPos, vel, smokeRadius);
+            solver.addExternalTemperature(solverPos, 0.05, smokeRadius);
+        }
+    } else {
+        solver.removeExternalDensity();
+        solver.removeExternalTemperature();
+        solver.removeExternalVelocity();
     }
 
-    if (mouse0Down) {
-        solver.addExternalDensity(solverPos, smokeColor, smokeRadius);
-    }
-    if (mouse0Down) {
-        const vel = getSolverVelocity(solverPos, prevSolverPos);
-        solver.addExternalVelocity(solverPos, vel, smokeRadius);
-    }
-    if (mouse0Down) {
-        solver.addExternalTemperature(solverPos, 0.01, smokeRadius);
-    }
+    
 
     smokeColor.x = Math.min(Math.max(smokeColor.x + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
     smokeColor.y = Math.min(Math.max(smokeColor.y + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
