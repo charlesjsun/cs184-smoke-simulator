@@ -18,18 +18,35 @@ let currTime;
 let prevTime;
 
 let smokeColor;
-let smokeRadius;
-
-let wrap;
-let donut;
 
 let raycaster;
+
+let settings;
+let gui;
+
+function Settings() {
+	// Radius of mouse click smoke
+	this.smokeRadius = 0.15;
+
+	// Wrap around up/down and left/right
+	this.wrap = true;
+	
+	// Object rendered
+	this.objects = ["Torus", "Plane", "Mobius Strip", "Klein Bottle", "Cube"];
+	this.object = this.objects[0];
+}
 
 function init() {
 
     const width = window.innerWidth;
     const height = window.innerHeight;
 
+	// Create a GUI with object settings of defaults
+	gui = new dat.GUI();
+	settings = new Settings();
+	
+	gui.add(settings, "smokeRadius", 0.01, 0.50, 0.01);
+	
     renderer = new THREE.WebGLRenderer();
 
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -39,42 +56,50 @@ function init() {
     const solverHeight = 250;
     const solverWidth = Math.floor(solverHeight * width / height);
 
-    wrap = true
-    donut = true;
+	// On switching wrap, reload solver with new wrap
+	// Call the function immediately with default settings.wrap value
+	gui.add(settings, "wrap").onChange(function(wrap) {
+		settings.wrap = wrap;
+		solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap);
+	}).setValue(settings.wrap);
+	
+	// On switching object type, change geometry
+	gui.add(settings, "object", settings.objects).onChange(function(object) {
+		settings.object = object;
 
-    solver = new Solver(renderer, solverWidth, solverHeight, wrap);
+		let geometry;
+		if (object === "Torus") {
+			camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50);
+			camera.position.z = 30;
+			geometry = new THREE.TorusGeometry(12, 5, 16, 100);
+		} else if (object === "Plane") {
+			camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+			geometry = new THREE.PlaneGeometry(2, 2);
+		} else {
+			console.log("Support not added yet for", object);
+		}
+		material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+		mesh = new THREE.Mesh(geometry, material);
+		scene = new THREE.Scene();
+		scene.add(mesh);
+		scene.background = new THREE.Color(0xcce0ff);
 
-    let geometry;
-    if (donut) {
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50);
-        camera.position.z = 30;
-        geometry = new THREE.TorusGeometry(12, 5, 16, 100);
-    } else {
-        camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        geometry = new THREE.PlaneGeometry(2, 2);
-    }
+	}).setValue(settings.object);
+	mouse0Down = false;
+	mouse1Down = false;
+	mouseX = 0.0;
+	mouseY = 0.0;
 
-    material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
-    mesh = new THREE.Mesh(geometry, material);
-    scene = new THREE.Scene();
-    scene.add(mesh);
-    scene.background = new THREE.Color(0xcce0ff);
+	solverPos = new THREE.Vector2();
+	prevSolverPos = new THREE.Vector2();
 
-    mouse0Down = false;
-    mouse1Down = false;
-    mouseX = 0.0;
-    mouseY = 0.0;
+	currTime = 1.0;
+	prevTime = 0.0;
 
-    solverPos = new THREE.Vector2();
-    prevSolverPos = new THREE.Vector2();
+	raycaster = new THREE.Raycaster();
 
-    currTime = 1.0;
-    prevTime = 0.0;
+	smokeColor = new THREE.Vector3(1.0, 1.0, 1.0);
 
-    raycaster = new THREE.Raycaster();
-
-    smokeColor = new THREE.Vector3(1.0, 1.0, 1.0);
-    smokeRadius = 0.15;
 
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('mousedown', onMouseDown);
@@ -156,7 +181,7 @@ function getSolverPos(mouseX, mouseY) {
 
 function getSolverVelocity(pos, prevPos) {
 
-    if (wrap) {
+    if (settings.wrap) {
         let dX = solverPos.x - prevSolverPos.x;
         if (Math.abs(dX) > 0.5) {
             dX = -Math.sign(dX) * (1.0 - Math.abs(dX));
@@ -184,11 +209,11 @@ function animate(time) {
     }
 
     if (mouse0Down) {
-        solver.addExternalDensity(solverPos, smokeColor, smokeRadius);
+        solver.addExternalDensity(solverPos, smokeColor, settings.smokeRadius);
     }
     if (mouse1Down) {
         const vel = getSolverVelocity(solverPos, prevSolverPos);
-        solver.addExternalVelocity(solverPos, vel, smokeRadius);
+        solver.addExternalVelocity(solverPos, vel, settings.smokeRadius);
     }
 
     smokeColor.x = Math.min(Math.max(smokeColor.x + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
@@ -197,7 +222,7 @@ function animate(time) {
 
     solver.step(time);
     
-    if (donut) {
+    if (settings.object === "Torus") {
         mesh.rotation.y = time / 5000.0;
     }
     
