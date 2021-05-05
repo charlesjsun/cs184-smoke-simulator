@@ -14,6 +14,10 @@ let height;
 let mouse0Down;
 let mouseX, mouseY;
 
+let isDrawingSmoke = false;
+let isMovingCamera = false;
+let canMoveCamera = true;
+
 let solverPos;
 
 let currTime;
@@ -24,6 +28,12 @@ let raycaster;
 
 let settings;
 let gui;
+
+// Camera rotation stuff
+let onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
+let lon = 90, lat = 0;
+let phi = 0, theta = 0;
+let cameraDist;
 
 function Settings() {
     // Radius of mouse click smoke
@@ -70,8 +80,10 @@ function recreateScene() {
 
     if (settings.object === "Sphere") {
 
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 200);
-        camera.position.z = 30;
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        canMoveCamera = true;
+        cameraDist = 20;
+        camera.position.z = cameraDist;
         let geometry = new THREE.SphereGeometry(10, 32, 32);
 
         material = new THREE.ShaderMaterial({
@@ -106,18 +118,27 @@ function recreateScene() {
 
     } else if (settings.object === "Torus") {
 
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
-        camera.position.z = 30;
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        canMoveCamera = true;
+        cameraDist = 30;
+        camera.position.z = cameraDist;
         let geometry = new THREE.TorusGeometry(12, 5, 48, 100);
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
+
         scene = new THREE.Scene();
         scene.add(mesh);
-        scene.background = new THREE.Color(0xcce0ff);
+
+        scene.background = new THREE.Color( 0xeeeeee );
+
+        let grid = new THREE.GridHelper(40, 10);
+        grid.position.y = -17.0;
+        scene.add(grid);
 
     } else if (settings.object === "Plane") {
 
         camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        canMoveCamera = false;
         let geometry = new THREE.PlaneGeometry(2, 2);
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
@@ -212,7 +233,17 @@ function onMouseDown(e) {
     
     if (e.button == 0) {
         mouse0Down = true;
-    } 
+        isDrawingSmoke = (getSolverPos(mouseX, mouseY) != null);
+        isMovingCamera = !isDrawingSmoke && canMoveCamera;
+    }
+
+    if (isMovingCamera) {
+        onPointerDownPointerX = e.clientX;
+        onPointerDownPointerY = e.clientY;
+    
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+    }
 
 }
 
@@ -221,12 +252,20 @@ function onMouseMove(e) {
     mouseX = e.offsetX;
     mouseY = e.offsetY;
 
+    if (isMovingCamera) {
+        lon = (e.clientX - onPointerDownPointerX) * 0.2 + onPointerDownLon;
+        lat = (e.clientY - onPointerDownPointerY) * 0.2 + onPointerDownLat;
+    }
+
 }
 
 function onMouseUp(e) {
 
     if (e.button == 0) {
         mouse0Down = false;
+
+        isDrawingSmoke = false;
+        isMovingCamera = false;
     } 
 
 }
@@ -242,19 +281,26 @@ function getSolverPos(mouseX, mouseY) {
 
     raycaster.setFromCamera(new THREE.Vector2(startX, startY), camera);
     const intersects = raycaster.intersectObjects(scene.children);
+
+    console.log(intersects)
+
     if (settings.object == "Sphere") {
 
-        if (intersects.length > 0 && intersects[0].point) {
-            const point = intersects[0].point;
-            const length = point.length();
-            return new THREE.Vector3(point.x / length, point.y / length, point.z / length);
+        for (let intersect of intersects) {
+            if (intersect.object === mesh && intersect.point) {
+                const point = intersect.point;
+                const length = point.length();
+                return new THREE.Vector3(point.x / length, point.y / length, point.z / length);
+            }
         }
 
     } else {
 
-        if (intersects.length > 0 && intersects[0].uv) {
-            const uv = intersects[0].uv;
-            return new THREE.Vector2(uv.x, uv.y);
+        for (let intersect of intersects) {
+            if (intersect.object === mesh && intersect.uv) {
+                const uv = intersect.uv;
+                return new THREE.Vector2(uv.x, uv.y);
+            }
         }
 
     }
@@ -292,7 +338,22 @@ function animate(time) {
     
     currTime = time;
 
-    if (mouse0Down) {
+    if (isMovingCamera) {
+
+        lat = Math.max(-85, Math.min(85, lat));
+        phi = THREE.MathUtils.degToRad(90 - lat);
+        theta = THREE.MathUtils.degToRad(lon);
+    
+        camera.position.x = cameraDist * Math.sin(phi) * Math.cos(theta);
+        camera.position.y = cameraDist * Math.cos(phi);
+        camera.position.z = cameraDist * Math.sin(phi) * Math.sin(theta);
+    
+        camera.lookAt(scene.position);
+        
+    } 
+    
+    if (isDrawingSmoke) {
+
         let newSolverPos = getSolverPos(mouseX, mouseY);
         if (newSolverPos != null) {
             solver.addExternalDensity(newSolverPos, smokeColor, settings.smokeRadius);
@@ -322,9 +383,9 @@ function animate(time) {
 
     solver.step(time);
     
-    if (settings.object === "Torus") {
-        mesh.rotation.y = time / 5000.0;
-    }
+    // if (settings.object === "Torus") {
+    //     mesh.rotation.y = time / 5000.0;
+    // }
     
     if (settings.object === "Sphere") {
         material.uniforms.map.value = solver.getTexture();
