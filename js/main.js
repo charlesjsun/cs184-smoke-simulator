@@ -51,6 +51,10 @@ function Settings() {
     // Object rendered
     this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube"];
     this.object = this.objects[0];
+
+	// Rotation Speed
+	this.rotx = 0;
+	this.roty = 0;
 }
 
 function recreateSolver() {
@@ -167,6 +171,8 @@ function init() {
     settings = new Settings();
     
     gui.add(settings, "smokeRadius", 0.01, 0.50, 0.01);
+    gui.add(settings, "rotx", 0.0, 2.0, 0.05);
+    gui.add(settings, "roty", 0.0, 2.0, 0.05);
     
     gui.add(settings, "dissipation", 0.90, 1.00, 0.01).onChange(function(dissipation) {
         settings.dissipation = dissipation;
@@ -382,10 +388,13 @@ function animate(time) {
     smokeColor.z = Math.min(Math.max(smokeColor.z + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
 
     solver.step(time);
-    
-    // if (settings.object === "Torus") {
-    //     mesh.rotation.y = time / 5000.0;
-    // }
+
+	if (settings.roty != 0.0) {
+		mesh.rotation.y = settings.roty * time / 5000.0;
+	}
+	if (settings.rotx != 0.0) {
+		mesh.rotation.x = settings.rotx * time / 5000.0;
+	}
     
     if (settings.object === "Sphere") {
         material.uniforms.map.value = solver.getTexture();
