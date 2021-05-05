@@ -208,10 +208,10 @@ function animate(time) {
     if (newSolverPos != null) {
         solverPos = newSolverPos;
         if (mouse0Down) {
-            solver.addExternalDensity(solverPos, smokeColor, smokeRadius);
+            solver.addExternalDensity(solverPos, smokeColor, settings.smokeRadius);
             const vel = getSolverVelocity(solverPos, prevSolverPos);
-            solver.addExternalVelocity(solverPos, vel, smokeRadius);
-            solver.addExternalTemperature(solverPos, 0.05, smokeRadius);
+            solver.addExternalVelocity(solverPos, vel, settings.smokeRadius);
+            solver.addExternalTemperature(solverPos, 0.05, settings.smokeRadius);
         }
     } else {
         solver.removeExternalDensity();
