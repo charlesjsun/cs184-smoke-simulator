@@ -17,7 +17,8 @@ class Buoyancy {
             ambientTemperature: { value: 0.0 },
             sigma: {value: 0.08 },
             kappa: { value: 0.001 },
-            direction: { value: Math.PI / 2.0 }
+            directionX: { value: 0.0 },
+            directionY: { value: 0.0 }
         };
 
         this.material = new THREE.ShaderMaterial({
@@ -35,12 +36,13 @@ class Buoyancy {
     
     }
 
-    compute(velocity, temperature, density, output, direction) {
+    compute(velocity, temperature, density, output, directionX, directionY) {
 
         this.uniforms.velocity.value = velocity.read.texture;
         this.uniforms.temperature.value = temperature.read.texture;
         this.uniforms.density.value = density.read.texture;
-        this.uniforms.direction.value = direction;
+        this.uniforms.directionX.value = directionX;
+        this.uniforms.directionY.value = directionY;
 
         this.renderer.setRenderTarget(output.write);
         this.renderer.render(this.scene, this.camera);
@@ -66,7 +68,8 @@ class Buoyancy {
         uniform float kappa;
         uniform float ambientTemperature;
 
-        uniform float direction;
+        uniform float directionX;
+        uniform float directionY;
 
         uniform sampler2D velocity;
         uniform sampler2D temperature; 
@@ -81,7 +84,7 @@ class Buoyancy {
 
             float amount = sigma * (t - ambientTemperature) - d * kappa;
 
-            gl_FragColor += vec4(amount * cos(direction), amount * sin(direction), 0.0, 1.0);
+            gl_FragColor += vec4(amount * directionX, amount * directionY, 0.0, 1.0);
         }
     `;
 

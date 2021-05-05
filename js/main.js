@@ -47,6 +47,8 @@ function Settings() {
 
     // Buoyancy
     this.buoyancy = false;
+	this.buoyancyX = 0.0;
+	this.buoyancyY = 0.0;
     
     // Object rendered
     this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube"];
@@ -68,13 +70,13 @@ function recreateSolver() {
 
         const solverHeight = 250;
         const solverWidth = Math.floor(solverHeight * width / height);
-        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, 0.0);
+        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, settings.buoyancyX, settings.buoyancyY);
     
     } else {
 
         const solverHeight = 250;
         const solverWidth = Math.floor(solverHeight * width / height);
-        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, Math.PI / 2.0);
+        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, settings.buoyancyX, settings.buoyancyY);
 
     }
 
@@ -187,6 +189,12 @@ function init() {
     gui.add(settings, "buoyancy").onChange(function(buoyancy) {
         settings.buoyancy = buoyancy;
         solver.shouldAddBuoyancy = buoyancy;
+    });
+    gui.add(settings, "buoyancyX", 0.0, 1.0, 0.01).onChange(function(buoyancy) {
+		solver.buoyancyX = buoyancy;
+    });
+    gui.add(settings, "buoyancyY", 0.0, 1.0, 0.01).onChange(function(buoyancy) {
+		solver.buoyancyY = buoyancy;
     });
     
     gui.add(settings, "object", settings.objects).onChange(function(object) {

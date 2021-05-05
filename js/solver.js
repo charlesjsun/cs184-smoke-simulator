@@ -13,7 +13,7 @@ import { VorticityConf } from "./slabops/voriticity_conf.js"
 
 class Solver {
     
-    constructor(renderer, width, height, wrap, buoyancy, buoyancyDirection) {
+    constructor(renderer, width, height, wrap, buoyancy, buoyancyX, buoyancyY) {
         
         this.renderer = renderer;
 
@@ -45,7 +45,8 @@ class Solver {
         this.externalTemperature = new ExternalTemperature(renderer, width, height, wrap);
 
         this.shouldAddBuoyancy = buoyancy;
-        this.buoyancyDirection = buoyancyDirection;
+        this.buoyancyX = buoyancyX;
+        this.buoyancyY = buoyancyY;
 
         this.shouldAddExternalDensity = false;
         this.externalDensityPos = null;
@@ -75,7 +76,7 @@ class Solver {
         this.advection.compute(this.temperature, this.velocity, this.temperature, this.dissipation);
 
         if (this.shouldAddBuoyancy) {
-            this.buoyancy.compute(this.velocity, this.temperature, this.density, this.velocity, this.buoyancyDirection);
+            this.buoyancy.compute(this.velocity, this.temperature, this.density, this.velocity, this.buoyancyX, this.buoyancyY);
         }
 
         // external forces
