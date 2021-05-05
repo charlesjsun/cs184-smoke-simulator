@@ -2,7 +2,7 @@ import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 
 class ExternalVelocity {
 
-    constructor(renderer, width, height, dt, wrap) {
+    constructor(renderer, width, height, wrap) {
         
         this.renderer = renderer;
 
@@ -11,7 +11,6 @@ class ExternalVelocity {
         this.uniforms = {
             width: { value: width },
             height: { value: height },
-            dt: { value: dt },
             velocity: { type: "t" },
             pos: { value: new THREE.Vector2() },
             vel: { value: new THREE.Vector2() },
@@ -60,8 +59,6 @@ class ExternalVelocity {
         uniform float width;
         uniform float height;
         
-        uniform float dt;
-
         uniform sampler2D velocity;
         
         uniform vec2 pos;
@@ -80,7 +77,7 @@ class ExternalVelocity {
             
             float factor = gauss(p, r);
 
-            vec2 added = vel * vec2(width, height) * factor * dt * 0.1;
+            vec2 added = vel * vec2(width, height) * factor * 0.1;
 
             gl_FragColor = vec4(original + added, 0.0, 1.0);
         }
@@ -92,8 +89,6 @@ class ExternalVelocity {
         uniform float width;
         uniform float height;
         
-        uniform float dt;
-
         uniform sampler2D velocity;
         
         uniform vec2 pos;
@@ -112,7 +107,7 @@ class ExternalVelocity {
             
             float factor = exp(-dot(p, p) / r);
 
-            vec2 added = vel * vec2(width, height) * factor * dt * 0.1;
+            vec2 added = vel * vec2(width, height) * factor * 0.1;
 
             gl_FragColor = vec4(original + added, 0.0, 1.0);
         }

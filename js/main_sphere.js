@@ -73,7 +73,7 @@ function init() {
 
     let grid = new THREE.GridHelper(40, 10);
     grid.position.y = -10.0;
-	scene.add(grid);
+    scene.add(grid);
 
     mouse0Down = false;
     mouse1Down = false;
@@ -113,7 +113,7 @@ function onWindowResize() {
     const height = window.innerHeight;
 
     camera.aspect = width / height;
-	camera.updateProjectionMatrix();
+    camera.updateProjectionMatrix();
 
     renderer.setSize(width, height);
 
@@ -176,7 +176,7 @@ function onContextMenu(e) {
 function getSolverPos(mouseX, mouseY) {
 
     let startX = (mouseX / window.innerWidth) * 2 - 1;
-	let startY = -(mouseY / window.innerHeight) * 2 + 1;
+    let startY = -(mouseY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(new THREE.Vector2(startX, startY), camera);
     const intersects = raycaster.intersectObjects(scene.children);

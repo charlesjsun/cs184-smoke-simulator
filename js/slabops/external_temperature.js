@@ -1,6 +1,6 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 
-class ExternalDensity {
+class ExternalTemperature {
 
     constructor(renderer, width, height, wrap) {
         
@@ -13,7 +13,7 @@ class ExternalDensity {
             height: { value: height },
             w: { type: "t" },
             pos: { value: new THREE.Vector2() },
-            color: { value: new THREE.Vector3() },
+            temp: { type: "f" },
             radius: { value: 0.01 },
         };
 
@@ -32,11 +32,11 @@ class ExternalDensity {
     
     }
 
-    compute(input, output, pos, color, radius) {
+    compute(input, output, pos, temp, radius) {
 
         this.uniforms.w.value = input.read.texture;
         this.uniforms.pos.value = pos;
-        this.uniforms.color.value = color;
+        this.uniforms.temp.value = temp;
         this.uniforms.radius.value = radius;
 
         this.renderer.setRenderTarget(output.write);
@@ -62,7 +62,7 @@ class ExternalDensity {
         uniform sampler2D w;
         
         uniform vec2 pos;
-        uniform vec3 color;
+        uniform float temp;
         uniform float radius;
 
         float gauss(vec2 p, float r) {
@@ -70,16 +70,16 @@ class ExternalDensity {
         }
 
         void main() {
-            vec3 original = texture2D(w, v_uv).xyz;
+            float original = texture2D(w, v_uv).x;
             
             float r = radius * width;
             vec2 p = (v_uv - pos) * vec2(width, height);
             
             float factor = gauss(p, r);
 
-            vec3 added = color * factor;
+            float added = temp * factor;
 
-            gl_FragColor = vec4(original + added, 1.0);
+            gl_FragColor = vec4(original + added, 0.0, 0.0, 1.0);
         }
     `;
 
@@ -92,11 +92,15 @@ class ExternalDensity {
         uniform sampler2D w;
         
         uniform vec2 pos;
-        uniform vec3 color;
+        uniform float temp;
         uniform float radius;
 
+        float gauss(vec2 p, float r) {
+            return exp(-dot(p, p) / r);
+        }
+
         void main() {
-            vec3 original = texture2D(w, v_uv).xyz;
+            float original = texture2D(w, v_uv).x;
             
             float r = radius * width;
             
@@ -105,14 +109,14 @@ class ExternalDensity {
 
             vec2 p = wd * vec2(width, height);
 
-            float factor = exp(-dot(p, p) / r);
+            float factor = gauss(p, r);
 
-            vec3 added = color * factor;
+            float added = temp * factor;
 
-            gl_FragColor = vec4(original + added, 1.0);
+            gl_FragColor = vec4(original + added, 0.0, 0.0, 1.0);
         }
     `;
 
 }
 
-export { ExternalDensity };
+export { ExternalTemperature };

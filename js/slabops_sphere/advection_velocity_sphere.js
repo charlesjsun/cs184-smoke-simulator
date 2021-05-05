@@ -17,7 +17,7 @@ class AdvectionVelocitySphere {
             vertexShader: this.vertexShader,
             fragmentShader: this.fragmentShader,
             side: THREE.BackSide,
-			blending: THREE.NoBlending
+            blending: THREE.NoBlending
         });
 
         this.sphere = new THREE.SphereGeometry(1, 32, 32);

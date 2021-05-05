@@ -79,7 +79,7 @@ class SolverSphere {
 
         this.externalDensityPos = pos;
         this.externalDensityColor = color;
-        this.externalDensityRadius = radius;
+        this.externalDensityRadius = radius * 0.1;
 
         this.shouldAddExternalDensity = true;
 
@@ -94,7 +94,7 @@ class SolverSphere {
     addExternalVelocity(pos, vel, radius) {
 
         this.externalVelocityPos = pos;
-        this.externalVelocityRadius = radius;
+        this.externalVelocityRadius = radius * 0.1;
         this.externalVelocityVelocity = vel;
         
         this.shouldAddExternalVelocity = true;
@@ -104,6 +104,22 @@ class SolverSphere {
     removeExternalVelocity() {
 
         this.shouldAddExternalVelocity = false;
+    
+    }
+
+    addExternalTemperature(pos, temp, radius) {
+
+        // this.externalTemperaturePos = pos;
+        // this.externalTemperatureTemp = temp;
+        // this.externalTemperatureRadius = radius;
+
+        // this.shouldAddExternalTemperature = true;
+
+    }
+
+    removeExternalTemperature() {
+
+        // this.shouldAddExternalTemperature = false;
     
     }
 
