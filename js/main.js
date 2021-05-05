@@ -1,10 +1,11 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 import { Solver } from "./solver.js"
 import { SolverSphere } from "./solver_sphere.js"
+import {ParametricGeometries} from "https://unpkg.com/three@0.119.0/examples/jsm/geometries/ParametricGeometries.js";
 
 let renderer;
 let camera, scene;
-let mesh, material;
+let mesh, material, line_seg;
 
 let solver;
 
@@ -25,6 +26,29 @@ let raycaster;
 let settings;
 let gui;
 
+function mobius3d ( u, t, target ) {
+
+    // volumetric mobius strip
+
+    u *= Math.PI;
+    t *= 2 * Math.PI;
+
+    u = u * 2;
+    var phi = u / 2;
+    var major = 2.25, a = 0.125, b = 0.65;
+    var scale = 5;
+
+    var x, y, z;
+
+    x = a * Math.cos( t ) * Math.cos( phi ) - b * Math.sin( t ) * Math.sin( phi );
+    z = a * Math.cos( t ) * Math.sin( phi ) + b * Math.sin( t ) * Math.cos( phi );
+    y = ( major + x ) * Math.sin( u );
+    x = ( major + x ) * Math.cos( u );
+
+    target.set( scale * x, scale * y, scale * z );
+
+}
+
 function Settings() {
     // Radius of mouse click smoke
     this.smokeRadius = 0.1;
@@ -39,8 +63,11 @@ function Settings() {
     this.buoyancy = false;
     
     // Object rendered
-    this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube"];
+    this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube", "Parametric Sphere"];
     this.object = this.objects[0];
+
+    // rotation speed of object  around x-axis
+    this.rotationSpeedX = 1;
 }
 
 function recreateSolver() {
@@ -73,6 +100,8 @@ function recreateScene() {
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 200);
         camera.position.z = 30;
         let geometry = new THREE.SphereGeometry(10, 32, 32);
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
 
         material = new THREE.ShaderMaterial({
             uniforms: { map: { } },
@@ -97,6 +126,7 @@ function recreateScene() {
         
         scene = new THREE.Scene();
         scene.add(mesh);
+        scene.add(line_seg);
 
         scene.background = new THREE.Color( 0xeeeeee );
 
@@ -109,10 +139,13 @@ function recreateScene() {
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
         camera.position.z = 30;
         let geometry = new THREE.TorusGeometry(12, 5, 48, 100);
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
         scene = new THREE.Scene();
         scene.add(mesh);
+        scene.add(line_seg);
         scene.background = new THREE.Color(0xcce0ff);
 
     } else if (settings.object === "Plane") {
@@ -124,8 +157,58 @@ function recreateScene() {
         scene = new THREE.Scene();
         scene.add(mesh);
 
-    } else {
-        console.log("Support not added yet for", settings.object);
+    } else if (settings.object == "Mobius Strip") {
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        let geometry = new THREE.ParametricGeometry( mobius3d, 25, 25 );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        // material = new THREE.MeshBasicMaterial({ color: 0x00ff00 } )
+        mesh = new THREE.Mesh(geometry,material);
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+
+        scene = new THREE.Scene();
+        scene.add(mesh);
+        scene.add(line_seg);
+        scene.background = new THREE.Color(0xcce0ff);
+    } else if (settings.object === "Klein Bottle") {
+
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        let geometry = new THREE.ParametricGeometry( ParametricGeometries.klein, 25, 25 );
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        mesh = new THREE.Mesh(geometry, material);
+        scene = new THREE.Scene();
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        scene.add(mesh);
+        scene.add(line_seg);
+        scene.background = new THREE.Color(0xcce0ff);
+    } else if (settings.object === "Cube") {
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        let geometry = new THREE.BoxGeometry( 10, 10, 10 );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        mesh = new THREE.Mesh(geometry, material);
+        scene = new THREE.Scene();
+        scene.add(mesh);
+        scene.background = new THREE.Color(0xcce0ff);
+    }else if (settings.object === "Parametric Sphere") {
+
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        // let geometry = new ParametricGeometries.SphereGeometry(5, 32, 32)
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        let geometry = new THREE.SphereGeometry( 10, 25, 25 );
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        mesh = new THREE.Mesh(geometry, material);
+        scene = new THREE.Scene();
+        scene.add(mesh);
+        scene.add(line_seg)
+        scene.background = new THREE.Color(0xcce0ff);
+        // scene.background = new THREE.Color(0xffff00);
+        
     }
     
 }
@@ -146,6 +229,8 @@ function init() {
     settings = new Settings();
     
     gui.add(settings, "smokeRadius", 0.01, 0.50, 0.01);
+
+    gui.add(settings, "rotationSpeedX", 0, 5, 1);
     
     gui.add(settings, "dissipation", 0.90, 1.00, 0.01).onChange(function(dissipation) {
         settings.dissipation = dissipation;
@@ -243,20 +328,32 @@ function getSolverPos(mouseX, mouseY) {
     raycaster.setFromCamera(new THREE.Vector2(startX, startY), camera);
     const intersects = raycaster.intersectObjects(scene.children);
     if (settings.object == "Sphere") {
+        for (let i = 0; i < intersects.length; i++) {
+            if (intersects[i].uv) {
+                const point = intersects[i].point;
+                const length = point.length();
+                // console.log(intersects[i]);
+                // account for rotation of sphere in below? 
+                let x_axis = new THREE.Vector3(1, 0, 0);
+                
+                return (new THREE.Vector3(point.x / length, point.y / length, point.z / length)).applyAxisAngle(x_axis, -mesh.rotation.x);
+            }
+        }
 
-        if (intersects.length > 0 && intersects[0].point) {
-            const point = intersects[0].point;
-            const length = point.length();
-            return new THREE.Vector3(point.x / length, point.y / length, point.z / length);
+    } else if (settings.object == "Mobius Strip" || settings.object == "Klein Bottle" || settings.object == "Parametric Sphere" || settings.object === "Torus") {
+        for (let i = 0; i < intersects.length; i++) {
+            if (intersects[i].uv) {
+                const uv = intersects[i].uv;
+                return new THREE.Vector2(uv.x, uv.y);
+            }
         }
 
     } else {
-
         if (intersects.length > 0 && intersects[0].uv) {
+            console.log(intersects)
             const uv = intersects[0].uv;
             return new THREE.Vector2(uv.x, uv.y);
         }
-
     }
     return null;
 
@@ -323,14 +420,38 @@ function animate(time) {
     solver.step(time);
     
     if (settings.object === "Torus") {
+        line_seg.rotation.y = time / 5000.0;
         mesh.rotation.y = time / 5000.0;
     }
     
     if (settings.object === "Sphere") {
         material.uniforms.map.value = solver.getTexture();
+        line_seg.rotation.x = time / 5000.0;
+        mesh.rotation.x = time / 5000.0;
     } else {
         material.setValues({map: solver.getTexture()});
     }
+
+    if (settings.object === "Klein Bottle") {
+        line_seg.rotation.x = time / 5000.0;
+        mesh.rotation.x = time / 5000.0;
+    }
+
+    if (settings.object === "Cube") {
+        mesh.rotation.y = time / 5000.0;
+    }
+
+    // cache previous rotation value for smooth rotations? 
+    if (settings.object === "Mobius Strip") {
+        line_seg.rotation.x = time / 5000.0 * settings.rotationSpeedX;
+        mesh.rotation.x = time / 5000.0 * settings.rotationSpeedX;
+    }
+
+    if (settings.object === "Parametric Sphere") {
+        line_seg.rotation.x = time / 5000.0;
+        mesh.rotation.x = time / 5000.0;
+    }
+
     
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
