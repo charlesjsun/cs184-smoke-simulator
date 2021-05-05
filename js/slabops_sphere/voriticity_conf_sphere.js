@@ -12,7 +12,7 @@ class VorticityConfSphere {
             dt: { value: dt },
             dx: { value: dx },
             eps: { value: 0.001 },
-            weight: { value: 2.0 }, // todo: make this adjustable later
+            weight: { value: 2.0 },
         };
 
         this.material = new THREE.ShaderMaterial({

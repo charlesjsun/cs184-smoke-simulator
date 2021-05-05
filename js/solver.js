@@ -75,7 +75,7 @@ class Solver {
         this.advection.compute(this.temperature, this.velocity, this.temperature, this.dissipation);
 
         if (this.shouldAddBuoyancy) {
-            this.buoyancy.compute(this.velocity, this.temperature, this.density, this.velocity, this.buoyancyDirection);
+            this.buoyancy.compute(this.velocity, this.temperature, this.density, this.velocity, this.buoyancyDirection * Math.PI / 180.0);
         }
 
         // external forces
