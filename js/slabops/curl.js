@@ -1,6 +1,7 @@
+
 import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 
-class Divergence {
+class Curl {
 
     constructor(renderer, width, height, dx) {
         
@@ -12,7 +13,7 @@ class Divergence {
             width: { value: width },
             height: { value: height },
             dx: { value: dx },
-            w: { type: "t" }, 
+            w: { type: "t" }, // velocityField
         };
 
         this.material = new THREE.ShaderMaterial({
@@ -59,20 +60,17 @@ class Divergence {
         uniform sampler2D w;
 
         void main() {
-            vec2 u_offset = vec2(1.0 / width, 0.0);
-            vec2 v_offset = vec2(0.0, 1.0 / height);
+            vec2 u_offset = vec2(1.0 / width, 0.0); // istep
+            vec2 v_offset = vec2(0.0, 1.0 / height); // jstep
+            // ij = v_uv
 
-            float wL = texture2D(w, v_uv - u_offset).x;
-            float wR = texture2D(w, v_uv + u_offset).x;
-            float wB = texture2D(w, v_uv - v_offset).y;
-            float wT = texture2D(w, v_uv + v_offset).y;
+            float dvdx = (texture2D(w, v_uv + u_offset).y - texture2D(w, v_uv - u_offset).y) / (2.0 * dx);
+            float dudy = (texture2D(w, v_uv + v_offset).x - texture2D(w, v_uv - v_offset).x) / (2.0 * dx);
 
-            float halfrdx = 0.5 / dx;
-
-            gl_FragColor = vec4(halfrdx * ((wR - wL) + (wT - wB)), 0.0, 0.0, 1.0);
+            gl_FragColor = vec4(dvdx - dudy, 0.0, 0.0, 1.0);
         }
     `;
 
 }
 
-export { Divergence };
+export { Curl };

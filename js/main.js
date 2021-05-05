@@ -100,7 +100,6 @@ function init() {
 
 	smokeColor = new THREE.Vector3(1.0, 1.0, 1.0);
 
-
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
@@ -147,6 +146,8 @@ function onMouseUp(e) {
     if (e.button == 0) {
         mouse0Down = false;
         solver.removeExternalDensity();
+        solver.removeExternalTemperature();
+        solver.removeExternalVelocity();
     } 
     if (e.button == 2) {
         mouse1Down = false;
@@ -206,14 +207,16 @@ function animate(time) {
     let newSolverPos = getSolverPos(mouseX, mouseY);
     if (newSolverPos != null) {
         solverPos = newSolverPos;
-    }
-
-    if (mouse0Down) {
-        solver.addExternalDensity(solverPos, smokeColor, settings.smokeRadius);
-    }
-    if (mouse1Down) {
-        const vel = getSolverVelocity(solverPos, prevSolverPos);
-        solver.addExternalVelocity(solverPos, vel, settings.smokeRadius);
+        if (mouse0Down) {
+            solver.addExternalDensity(solverPos, smokeColor, smokeRadius);
+            const vel = getSolverVelocity(solverPos, prevSolverPos);
+            solver.addExternalVelocity(solverPos, vel, smokeRadius);
+            solver.addExternalTemperature(solverPos, 0.05, smokeRadius);
+        }
+    } else {
+        solver.removeExternalDensity();
+        solver.removeExternalTemperature();
+        solver.removeExternalVelocity();
     }
 
     smokeColor.x = Math.min(Math.max(smokeColor.x + (Math.random() - 0.5) * 0.1, 0.0), 1.0);

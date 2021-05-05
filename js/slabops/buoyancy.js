@@ -1,8 +1,8 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 
-class Divergence {
+class Buoyancy {
 
-    constructor(renderer, width, height, dx) {
+    constructor(renderer, width, height) {
         
         this.renderer = renderer
 
@@ -11,8 +11,12 @@ class Divergence {
         this.uniforms = {
             width: { value: width },
             height: { value: height },
-            dx: { value: dx },
-            w: { type: "t" }, 
+            velocity: { type: "t" },
+            temperature: { type: "t"},
+            density: { type: "t"},
+            ambientTemperature: { value: 0.0 },
+            sigma: {value: 0.08 },
+            kappa: { value: 0.001 },
         };
 
         this.material = new THREE.ShaderMaterial({
@@ -30,9 +34,11 @@ class Divergence {
     
     }
 
-    compute(w, output) {
-        
-        this.uniforms.w.value = w.read.texture;
+    compute(velocity, temperature, density, output) {
+
+        this.uniforms.velocity.value = velocity.read.texture;
+        this.uniforms.temperature.value = temperature.read.texture;
+        this.uniforms.density.value = density.read.texture;
 
         this.renderer.setRenderTarget(output.write);
         this.renderer.render(this.scene, this.camera);
@@ -53,26 +59,26 @@ class Divergence {
 
         uniform float width;
         uniform float height;
-        
-        uniform float dx;
 
-        uniform sampler2D w;
+        uniform float sigma;
+        uniform float kappa;
+        uniform float ambientTemperature;
+
+        uniform sampler2D velocity;
+        uniform sampler2D temperature; 
+        uniform sampler2D density; 
 
         void main() {
-            vec2 u_offset = vec2(1.0 / width, 0.0);
-            vec2 v_offset = vec2(0.0, 1.0 / height);
+            float t = texture2D(temperature, v_uv).x;
+            vec4 v = texture2D(velocity, v_uv);
+            // gl_Fracoord is v_uv * (width, height)
+            gl_FragColor = v;
 
-            float wL = texture2D(w, v_uv - u_offset).x;
-            float wR = texture2D(w, v_uv + u_offset).x;
-            float wB = texture2D(w, v_uv - v_offset).y;
-            float wT = texture2D(w, v_uv + v_offset).y;
-
-            float halfrdx = 0.5 / dx;
-
-            gl_FragColor = vec4(halfrdx * ((wR - wL) + (wT - wB)), 0.0, 0.0, 1.0);
+            float d = texture2D(density, v_uv).x;
+            gl_FragColor += vec4( sigma * (t - ambientTemperature) - d * kappa,0.0, 0.0, 1.0);
         }
     `;
 
 }
 
-export { Divergence };
+export { Buoyancy };

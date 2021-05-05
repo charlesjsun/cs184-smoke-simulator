@@ -2,7 +2,7 @@ import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 
 class ExternalVelocity {
 
-    constructor(renderer, width, height, dt, wrap) {
+    constructor(renderer, width, height, radius, dt, wrap) {
         
         this.renderer = renderer;
 
@@ -15,7 +15,7 @@ class ExternalVelocity {
             velocity: { type: "t" },
             pos: { value: new THREE.Vector2() },
             vel: { value: new THREE.Vector2() },
-            radius: { value: 0.01 },
+            radius: { value: radius },
         };
 
         this.material = new THREE.ShaderMaterial({
