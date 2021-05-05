@@ -50,7 +50,7 @@ function Settings() {
     
     // Object rendered
     this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube"];
-    this.object = this.objects[0];
+    this.object = this.objects[2];
 }
 
 function recreateSolver() {
@@ -281,8 +281,6 @@ function getSolverPos(mouseX, mouseY) {
 
     raycaster.setFromCamera(new THREE.Vector2(startX, startY), camera);
     const intersects = raycaster.intersectObjects(scene.children);
-
-    console.log(intersects)
 
     if (settings.object == "Sphere") {
 
