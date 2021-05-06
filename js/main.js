@@ -78,6 +78,9 @@ function Settings() {
     // Wrap around up/down and left/right
     this.wrap = true;
 
+    // wireframes
+    this.wireframe = false;
+
     // Buoyancy
     this.buoyancy = false;
     this.buoyancyDirection = 90.0;
@@ -121,7 +124,7 @@ function recreateScene() {
         camera.position.z = cameraDist;
         let geometry = new THREE.SphereGeometry(10, 32, 32);
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
-        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        line_seg = new THREE.LineSegments(new THREE.WireframeGeometry(geometry), lineMaterial);
 
         material = new THREE.ShaderMaterial({
             uniforms: { map: { } },
@@ -147,7 +150,9 @@ function recreateScene() {
         
         scene = new THREE.Scene();
         scene.add(mesh);
-        // scene.add(line_seg);
+        if (settings.wireframe) {
+            scene.add(line_seg);
+        }
 
         scene.background = new THREE.Color(0xeeeeee);
 
@@ -163,14 +168,16 @@ function recreateScene() {
         camera.position.z = cameraDist;
         let geometry = new THREE.TorusGeometry(12, 5, 48, 100);
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
-        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
         canRotate = true;
 
         scene = new THREE.Scene();
         scene.add(mesh);
-        // scene.add(line_seg);
+        if (settings.wireframe) {
+            scene.add(line_seg);
+        }
 
         scene.background = new THREE.Color(0xeeeeee);
 
@@ -199,12 +206,14 @@ function recreateScene() {
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
         // material = new THREE.MeshBasicMaterial({ color: 0x00ff00 } )
         mesh = new THREE.Mesh(geometry,material);
-        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
         canRotate = true;
 
         scene = new THREE.Scene();
         scene.add(mesh);
-        // scene.add(line_seg);
+        if (settings.wireframe) {
+            scene.add(line_seg);
+        }
         scene.background = new THREE.Color(0xeeeeee);
 
         let grid = new THREE.GridHelper(60, 15);
@@ -221,10 +230,12 @@ function recreateScene() {
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
         scene = new THREE.Scene();
-        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
         canRotate = true;
         scene.add(mesh);
-        // scene.add(line_seg);
+        if (settings.wireframe) {
+            scene.add(line_seg);
+        }
         scene.background = new THREE.Color(0xeeeeee);
 
         let grid = new THREE.GridHelper(60, 15);
@@ -237,12 +248,17 @@ function recreateScene() {
         camera.position.z = 20;
         cameraDist = 20;
         let geometry = new THREE.BoxGeometry( 10, 10, 10 );
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
         canRotate = true;
         scene = new THREE.Scene();
         scene.add(mesh);
         scene.background = new THREE.Color(0xeeeeee);
+        if (settings.wireframe) {
+            scene.add(line_seg);
+        }
 
         let grid = new THREE.GridHelper(60, 15);
         grid.position.y = -10.0;
@@ -253,16 +269,17 @@ function recreateScene() {
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
         camera.position.z = 20;
         cameraDist = 20;
-        // let geometry = new ParametricGeometries.SphereGeometry(5, 32, 32)
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
         let geometry = new THREE.SphereGeometry( 10, 32, 32 );
-        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
         canRotate = false;
         scene = new THREE.Scene();
         scene.add(mesh);
-        // scene.add(line_seg)
+        if (settings.wireframe) {
+            scene.add(line_seg);
+        }
         scene.background = new THREE.Color(0xeeeeee);
 
         let grid = new THREE.GridHelper(60, 15);
@@ -325,6 +342,15 @@ function init() {
     gui.add(settings, "wrap").onChange(function(wrap) {
         settings.wrap = wrap;
         recreateSolver();
+    });
+
+    gui.add(settings, "wireframe").onChange(function(wireframe) {
+        settings.wireframe = wireframe;
+        if (wireframe) {
+            scene.add(line_seg);
+        } else {
+            scene.remove(line_seg);
+        }
     });
 
     gui.add(settings, "buoyancy").onChange(function(buoyancy) {
@@ -535,9 +561,15 @@ function animate(time) {
   
     if (canRotate && settings.roty != 0.0) {
         mesh.rotation.y += settings.roty * deltaTime / 5000.0;
+        if (settings.wireframe) {
+            line_seg.rotation.y += settings.roty * deltaTime / 5000.0;
+        }
     }
     if (canRotate && settings.rotx != 0.0) {
         mesh.rotation.x += settings.rotx * deltaTime / 5000.0;
+        if (settings.wireframe) {
+            line_seg.rotation.x += settings.rotx * deltaTime / 5000.0;
+        }
     }
     
     if (settings.object === "Sphere") {
