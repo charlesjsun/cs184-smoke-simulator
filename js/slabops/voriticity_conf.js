@@ -77,15 +77,16 @@ class VorticityConf {
             float xB = abs(texture2D(curl, v_uv - v_offset).x);
             float xT = abs(texture2D(curl, v_uv + v_offset).x);
 
-            float etaX = (xR - xL) / (2.0 * dx);
-            float etaY = (xT - xB) / (2.0 * dx);
-            vec2 force = vec2(0.0);
+            float halfrdx = 0.5 / dx;
 
-            if (abs(etaX) > eps && abs(etaY) > eps) {
-                vec2 psi = vec2(etaX / abs(etaX), etaY / abs(etaY));
-                vec2 vorticity = texture2D(curl, v_uv).xy;
-                vec2 cross = vec2(psi.y * vorticity.x, psi.x * vorticity.y * -1.0);
-                force = cross * dt;
+            vec2 eta = vec2(xR - xL, xT - xB) * halfrdx;
+            vec2 force = vec2(0.0, 0.0);
+
+            if (length(eta) > eps) {
+                vec3 psi = vec3(normalize(eta), 0.0);
+                vec3 vorticity = vec3(0.0, 0.0, texture2D(curl, v_uv).x);
+                vec2 cp = cross(psi, vorticity).xy;
+                force = cp * dt;
             }
 
             vec2 vel = texture2D(velocity, v_uv).xy;
