@@ -18,7 +18,7 @@ class SolverSphere {
 
         this.size = size;
 
-        this.dt = 1.0 / 20.0;
+        this.dt = 1.0 / 10.0;
         this.dx = 1.0 / (size * 0.5);
         this.dissipation = 0.99;
         // this.dissipation = 1.0;
