@@ -561,15 +561,11 @@ function animate(time) {
   
     if (canRotate && settings.roty != 0.0) {
         mesh.rotation.y += settings.roty * deltaTime / 5000.0;
-        if (settings.wireframe) {
-            line_seg.rotation.y += settings.roty * deltaTime / 5000.0;
-        }
+        line_seg.rotation.y += settings.roty * deltaTime / 5000.0;
     }
     if (canRotate && settings.rotx != 0.0) {
         mesh.rotation.x += settings.rotx * deltaTime / 5000.0;
-        if (settings.wireframe) {
-            line_seg.rotation.x += settings.rotx * deltaTime / 5000.0;
-        }
+        line_seg.rotation.x += settings.rotx * deltaTime / 5000.0;
     }
     
     if (settings.object === "Sphere") {
