@@ -101,8 +101,9 @@ function recreateSolver() {
         const solverHeight = 250;
         const solverWidth = Math.floor(solverHeight * width / height);
         solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, settings.buoyancyDirection);
-
     }
+    
+    solver.dissipation = settings.dissipation;
 
 }
 
