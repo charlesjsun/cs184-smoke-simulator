@@ -17,7 +17,7 @@ class Buoyancy {
             ambientTemperature: { value: 0.0 },
             sigma: {value: 0.08 },
             kappa: { value: 0.001 },
-            direction: { value: Math.PI / 2.0 }
+            direction: { value: Math.PI / 2.0 },
         };
 
         this.material = new THREE.ShaderMaterial({

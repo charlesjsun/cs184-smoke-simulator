@@ -7,6 +7,8 @@ import { ExternalDensitySphere } from "./slabops_sphere/external_density_sphere.
 import { ExternalVelocitySphere } from "./slabops_sphere/external_velocity_sphere.js";
 import { GradientSubtractionSphere } from "./slabops_sphere/gradient_subtraction_sphere.js";
 import { JacobiSphere } from "./slabops_sphere/jacobi_sphere.js";
+import { CurlSphere } from "./slabops_sphere/curl_sphere.js";
+import { VorticityConfSphere } from "./slabops_sphere/voriticity_conf_sphere.js";
 
 class SolverSphere {
     
@@ -25,12 +27,15 @@ class SolverSphere {
         this.velocity = new SlabSphere(renderer, size);
         this.velocityDivergence = new SlabSphere(renderer, size);
         this.density = new SlabSphere(renderer, size);
+        this.vorticity = new SlabSphere(renderer, size);
 
         this.advection = new AdvectionSphere(renderer, this.dt);
         this.advectionVelocity = new AdvectionVelocitySphere(renderer, this.dt);
         this.jacobi = new JacobiSphere(renderer, this.dx, 30);
         this.divergence = new DivergenceSphere(renderer, this.dx);
         this.gradientSubtraction = new GradientSubtractionSphere(renderer, this.dx);
+        this.curl = new CurlSphere(renderer, this.dx);
+        this.vorticityConf = new VorticityConfSphere(renderer, this.dt, this.dx);
 
         this.externalDensity = new ExternalDensitySphere(renderer);
         this.externalVelocity = new ExternalVelocitySphere(renderer);
@@ -67,6 +72,10 @@ class SolverSphere {
                 this.externalVelocityPos, this.externalVelocityVelocity, this.externalVelocityRadius);
         }
 
+        // vorticity confinement for smoke
+        this.curl.compute(this.velocity, this.vorticity);
+        this.vorticityConf.compute(this.velocity, this.vorticity, this.velocity);
+
         // projection
         this.divergence.compute(this.velocity, this.velocityDivergence);
         this.pressure.clear();
@@ -79,7 +88,7 @@ class SolverSphere {
 
         this.externalDensityPos = pos;
         this.externalDensityColor = color;
-        this.externalDensityRadius = radius * 0.1;
+        this.externalDensityRadius = radius * 0.02;
 
         this.shouldAddExternalDensity = true;
 
@@ -94,7 +103,7 @@ class SolverSphere {
     addExternalVelocity(pos, vel, radius) {
 
         this.externalVelocityPos = pos;
-        this.externalVelocityRadius = radius * 0.1;
+        this.externalVelocityRadius = radius * 0.02;
         this.externalVelocityVelocity = vel;
         
         this.shouldAddExternalVelocity = true;

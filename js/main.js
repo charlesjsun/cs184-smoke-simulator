@@ -15,6 +15,10 @@ let height;
 let mouse0Down;
 let mouseX, mouseY;
 
+let isDrawingSmoke = false;
+let isMovingCamera = false;
+let canMoveCamera = true;
+
 let solverPos;
 
 let currTime;
@@ -49,6 +53,12 @@ function mobius3d ( u, t, target ) {
 
 }
 
+// Camera rotation stuff
+let onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
+let lon = 90, lat = 0;
+let phi = 0, theta = 0;
+let cameraDist;
+
 function Settings() {
     // Radius of mouse click smoke
     this.smokeRadius = 0.1;
@@ -61,13 +71,16 @@ function Settings() {
 
     // Buoyancy
     this.buoyancy = false;
+	  this.buoyancyDirection = 90.0;
     
     // Object rendered
     this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube", "Parametric Sphere"];
     this.object = this.objects[0];
 
-    // rotation speed of object  around x-axis
-    this.rotationSpeedX = 1;
+	  // Rotation Speed
+    this.rotx = 0.0;
+	  this.roty = 0.0;
+
 }
 
 function recreateSolver() {
@@ -81,13 +94,13 @@ function recreateSolver() {
 
         const solverHeight = 250;
         const solverWidth = Math.floor(solverHeight * width / height);
-        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, 0.0);
+        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, settings.buoyancyDirection);
     
     } else {
 
         const solverHeight = 250;
         const solverWidth = Math.floor(solverHeight * width / height);
-        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, Math.PI / 2.0);
+        solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, settings.buoyancyDirection);
 
     }
 
@@ -97,8 +110,10 @@ function recreateScene() {
 
     if (settings.object === "Sphere") {
 
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 200);
-        camera.position.z = 30;
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        canMoveCamera = true;
+        cameraDist = 20;
+        camera.position.z = cameraDist;
         let geometry = new THREE.SphereGeometry(10, 32, 32);
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
         line_seg = new THREE.LineSegments( geometry, lineMaterial );
@@ -128,7 +143,7 @@ function recreateScene() {
         scene.add(mesh);
         scene.add(line_seg);
 
-        scene.background = new THREE.Color( 0xeeeeee );
+        scene.background = new THREE.Color(0xeeeeee);
 
         let grid = new THREE.GridHelper(40, 10);
         grid.position.y = -10.0;
@@ -136,21 +151,30 @@ function recreateScene() {
 
     } else if (settings.object === "Torus") {
 
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
-        camera.position.z = 30;
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        canMoveCamera = true;
+        cameraDist = 30;
+        camera.position.z = cameraDist;
         let geometry = new THREE.TorusGeometry(12, 5, 48, 100);
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
         line_seg = new THREE.LineSegments( geometry, lineMaterial );
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
+
         scene = new THREE.Scene();
         scene.add(mesh);
         scene.add(line_seg);
-        scene.background = new THREE.Color(0xcce0ff);
+
+        scene.background = new THREE.Color(0xeeeeee);
+
+        let grid = new THREE.GridHelper(40, 10);
+        grid.position.y = -17.0;
+        scene.add(grid);
 
     } else if (settings.object === "Plane") {
 
         camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        canMoveCamera = false;
         let geometry = new THREE.PlaneGeometry(2, 2);
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
@@ -158,6 +182,7 @@ function recreateScene() {
         scene.add(mesh);
 
     } else if (settings.object == "Mobius Strip") {
+      
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
         camera.position.z = 30;
         let geometry = new THREE.ParametricGeometry( mobius3d, 25, 25 );
@@ -170,7 +195,8 @@ function recreateScene() {
         scene = new THREE.Scene();
         scene.add(mesh);
         scene.add(line_seg);
-        scene.background = new THREE.Color(0xcce0ff);
+        scene.background = new THREE.Color(0xeeeeee);
+      
     } else if (settings.object === "Klein Bottle") {
 
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
@@ -183,8 +209,10 @@ function recreateScene() {
         line_seg = new THREE.LineSegments( geometry, lineMaterial );
         scene.add(mesh);
         scene.add(line_seg);
-        scene.background = new THREE.Color(0xcce0ff);
+        scene.background = new THREE.Color(0xeeeeee);
+      
     } else if (settings.object === "Cube") {
+      
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
         camera.position.z = 30;
         let geometry = new THREE.BoxGeometry( 10, 10, 10 );
@@ -192,7 +220,8 @@ function recreateScene() {
         mesh = new THREE.Mesh(geometry, material);
         scene = new THREE.Scene();
         scene.add(mesh);
-        scene.background = new THREE.Color(0xcce0ff);
+        scene.background = new THREE.Color(0xeeeeee);
+      
     }else if (settings.object === "Parametric Sphere") {
 
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
@@ -206,8 +235,7 @@ function recreateScene() {
         scene = new THREE.Scene();
         scene.add(mesh);
         scene.add(line_seg)
-        scene.background = new THREE.Color(0xcce0ff);
-        // scene.background = new THREE.Color(0xffff00);
+        scene.background = new THREE.Color(0xeeeeee);
         
     }
     
@@ -215,7 +243,7 @@ function recreateScene() {
 
 function init() {
 
-    width = document.getElementById('topnav').offsetWidth; //window.innerWidth;
+    width = document.getElementById('topnav').offsetWidth;
     height = window.innerHeight - document.getElementById('topnav').offsetHeight;;
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -230,7 +258,8 @@ function init() {
     
     gui.add(settings, "smokeRadius", 0.01, 0.50, 0.01);
 
-    gui.add(settings, "rotationSpeedX", 0, 5, 1);
+    gui.add(settings, "rotx", 0.0, 2.0, 0.05);
+    gui.add(settings, "roty", 0.0, 2.0, 0.05);
     
     gui.add(settings, "dissipation", 0.90, 1.00, 0.01).onChange(function(dissipation) {
         settings.dissipation = dissipation;
@@ -245,6 +274,9 @@ function init() {
     gui.add(settings, "buoyancy").onChange(function(buoyancy) {
         settings.buoyancy = buoyancy;
         solver.shouldAddBuoyancy = buoyancy;
+    });
+    gui.add(settings, "buoyancyDirection", 0.0, 360.0, 10.0).onChange(function(buoyancyDirection) {
+		solver.buoyancyDirection = buoyancyDirection;
     });
     
     gui.add(settings, "object", settings.objects).onChange(function(object) {
@@ -274,13 +306,12 @@ function init() {
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('mousemove', onMouseMove);
-    // document.addEventListener("contextmenu", onContextMenu, false);
 
 }
 
 function onWindowResize() {
 
-    width = document.getElementById('topnav').offsetWidth; //window.innerWidth;
+    width = document.getElementById('topnav').offsetWidth;
     height = window.innerHeight - document.getElementById('topnav').offsetHeight;;
 
     camera.aspect = width / height;
@@ -297,7 +328,17 @@ function onMouseDown(e) {
     
     if (e.button == 0) {
         mouse0Down = true;
-    } 
+        isDrawingSmoke = (getSolverPos(mouseX, mouseY) != null);
+        isMovingCamera = !isDrawingSmoke && canMoveCamera;
+    }
+
+    if (isMovingCamera) {
+        onPointerDownPointerX = e.clientX;
+        onPointerDownPointerY = e.clientY;
+    
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+    }
 
 }
 
@@ -306,12 +347,20 @@ function onMouseMove(e) {
     mouseX = e.offsetX;
     mouseY = e.offsetY;
 
+    if (isMovingCamera) {
+        lon = (e.clientX - onPointerDownPointerX) * 0.2 + onPointerDownLon;
+        lat = (e.clientY - onPointerDownPointerY) * 0.2 + onPointerDownLat;
+    }
+
 }
 
 function onMouseUp(e) {
 
     if (e.button == 0) {
         mouse0Down = false;
+
+        isDrawingSmoke = false;
+        isMovingCamera = false;
     } 
 
 }
@@ -327,33 +376,26 @@ function getSolverPos(mouseX, mouseY) {
 
     raycaster.setFromCamera(new THREE.Vector2(startX, startY), camera);
     const intersects = raycaster.intersectObjects(scene.children);
-    if (settings.object == "Sphere") {
-        for (let i = 0; i < intersects.length; i++) {
-            if (intersects[i].uv) {
-                const point = intersects[i].point;
-                const length = point.length();
-                // console.log(intersects[i]);
-                // account for rotation of sphere in below? 
-                let x_axis = new THREE.Vector3(1, 0, 0);
-                
-                return (new THREE.Vector3(point.x / length, point.y / length, point.z / length)).applyAxisAngle(x_axis, -mesh.rotation.x);
-            }
-        }
 
-    } else if (settings.object == "Mobius Strip" || settings.object == "Klein Bottle" || settings.object == "Parametric Sphere" || settings.object === "Torus") {
-        for (let i = 0; i < intersects.length; i++) {
-            if (intersects[i].uv) {
-                const uv = intersects[i].uv;
-                return new THREE.Vector2(uv.x, uv.y);
+    if (settings.object == "Sphere") {
+
+        for (let intersect of intersects) {
+            if (intersect.object === mesh && intersect.point) {
+                const point = intersect.point;
+                const length = point.length();
+                return new THREE.Vector3(point.x / length, point.y / length, point.z / length);
             }
         }
 
     } else {
-        if (intersects.length > 0 && intersects[0].uv) {
-            console.log(intersects)
-            const uv = intersects[0].uv;
-            return new THREE.Vector2(uv.x, uv.y);
+
+        for (let intersect of intersects) {
+            if (intersect.object === mesh && intersect.uv) {
+                const uv = intersect.uv;
+                return new THREE.Vector2(uv.x, uv.y);
+            }
         }
+
     }
     return null;
 
@@ -389,7 +431,22 @@ function animate(time) {
     
     currTime = time;
 
-    if (mouse0Down) {
+    if (isMovingCamera) {
+
+        lat = Math.max(-85, Math.min(85, lat));
+        phi = THREE.MathUtils.degToRad(90 - lat);
+        theta = THREE.MathUtils.degToRad(lon);
+    
+        camera.position.x = cameraDist * Math.sin(phi) * Math.cos(theta);
+        camera.position.y = cameraDist * Math.cos(phi);
+        camera.position.z = cameraDist * Math.sin(phi) * Math.sin(theta);
+    
+        camera.lookAt(scene.position);
+        
+    } 
+    
+    if (isDrawingSmoke) {
+
         let newSolverPos = getSolverPos(mouseX, mouseY);
         if (newSolverPos != null) {
             solver.addExternalDensity(newSolverPos, smokeColor, settings.smokeRadius);
@@ -418,40 +475,19 @@ function animate(time) {
     smokeColor.z = Math.min(Math.max(smokeColor.z + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
 
     solver.step(time);
-    
-    if (settings.object === "Torus") {
-        line_seg.rotation.y = time / 5000.0;
-        mesh.rotation.y = time / 5000.0;
+  
+    if (settings.roty != 0.0) {
+        mesh.rotation.y = settings.roty * time / 5000.0;
+    }
+    if (settings.rotx != 0.0) {
+        mesh.rotation.x = settings.rotx * time / 5000.0;
     }
     
     if (settings.object === "Sphere") {
         material.uniforms.map.value = solver.getTexture();
-        line_seg.rotation.x = time / 5000.0;
-        mesh.rotation.x = time / 5000.0;
     } else {
         material.setValues({map: solver.getTexture()});
     }
-
-    if (settings.object === "Klein Bottle") {
-        line_seg.rotation.x = time / 5000.0;
-        mesh.rotation.x = time / 5000.0;
-    }
-
-    if (settings.object === "Cube") {
-        mesh.rotation.y = time / 5000.0;
-    }
-
-    // cache previous rotation value for smooth rotations? 
-    if (settings.object === "Mobius Strip") {
-        line_seg.rotation.x = time / 5000.0 * settings.rotationSpeedX;
-        mesh.rotation.x = time / 5000.0 * settings.rotationSpeedX;
-    }
-
-    if (settings.object === "Parametric Sphere") {
-        line_seg.rotation.x = time / 5000.0;
-        mesh.rotation.x = time / 5000.0;
-    }
-
     
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
