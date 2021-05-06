@@ -86,7 +86,7 @@ function Settings() {
     this.buoyancyDirection = 90.0;
     
     // Object rendered
-    this.objects = ["Sphere", "Plane", "Torus", "Planer Sphere", "Mobius Strip", "Klein Bottle", "Cube"];
+    this.objects = ["Sphere", "Plane", "Torus", "Planar Sphere", "Mobius Strip", "Klein Bottle", "Cube"];
     this.object = this.objects[0];
 
     // Rotation Speed
@@ -264,7 +264,7 @@ function recreateScene() {
         grid.position.y = -10.0;
         scene.add(grid);
       
-    }else if (settings.object === "Planer Sphere") {
+    }else if (settings.object === "Planar Sphere") {
 
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
         camera.position.z = 20;
@@ -295,6 +295,8 @@ function recreateScene() {
     
 }
 
+let currObject;
+
 function init() {
 
     width = document.getElementById('topnav').offsetWidth;
@@ -310,9 +312,14 @@ function init() {
     gui = new dat.GUI();
     settings = new Settings();
     
+    currObject = settings.object;
+
     gui.add(settings, "object", settings.objects).onChange(function(object) {
         settings.object = object;
-        recreateSolver();
+        if ((currObject === "Sphere" && object !== "Sphere") || (currObject !== "Sphere" && object === "Sphere")) {
+            recreateSolver();
+        }
+        currObject = object;
         recreateScene();
     });
 
