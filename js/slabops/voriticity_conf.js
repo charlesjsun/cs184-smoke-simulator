@@ -34,10 +34,11 @@ class VorticityConf {
     
     }
 
-    compute(velocity, curl, output) {
+    compute(velocity, curl, output, weight) {
 
         this.uniforms.velocity.value = velocity.read.texture;
         this.uniforms.curl.value = curl.read.texture;
+        this.uniforms.weight.value = weight;
         
         this.renderer.setRenderTarget(output.write);
         this.renderer.render(this.scene, this.camera);

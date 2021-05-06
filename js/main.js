@@ -72,6 +72,9 @@ function Settings() {
     // Dissipation of smoke
     this.dissipation = 0.99;
 
+    // vorticity rate
+    this.vorticity = 0.2;
+
     // Wrap around up/down and left/right
     this.wrap = true;
 
@@ -102,8 +105,9 @@ function recreateSolver() {
         const solverWidth = Math.floor(solverHeight * width / height);
         solver = new Solver(renderer, solverWidth, solverHeight, settings.wrap, settings.buoyancy, settings.buoyancyDirection);
     }
-    
+
     solver.dissipation = settings.dissipation;
+    solver.vorticityWeight = settings.vorticity;
 
 }
 
@@ -304,9 +308,14 @@ function init() {
     gui.add(settings, "green", 0.00, 1.00, 0.01);
     gui.add(settings, "blue", 0.00, 1.00, 0.01);
 
-    gui.add(settings, "dissipation", 0.90, 1.00, 0.01).onChange(function(dissipation) {
+    gui.add(settings, "dissipation", 0.95, 1.00, 0.005).onChange(function(dissipation) {
         settings.dissipation = dissipation;
         solver.dissipation = dissipation;
+    });
+
+    gui.add(settings, "vorticity", 0.0, 0.5, 0.01).onChange(function(vorticity) {
+        settings.vorticity = vorticity;
+        solver.vorticityWeight = vorticity;
     });
 
     gui.add(settings, "rotx", 0.0, 2.0, 0.05);

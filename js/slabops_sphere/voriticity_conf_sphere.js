@@ -11,7 +11,7 @@ class VorticityConfSphere {
             curl: { },
             dt: { value: dt },
             dx: { value: dx },
-            eps: { value: 0.001 },
+            eps: { value: 0.05 },
             weight: { value: 1.5 },
         };
 
@@ -32,10 +32,11 @@ class VorticityConfSphere {
     
     }
 
-    compute(velocity, curl, output) {
+    compute(velocity, curl, output, weight) {
 
         this.uniforms.velocity.value = velocity.read.texture;
         this.uniforms.curl.value = curl.read.texture;
+        this.uniforms.weight.value = weight;
         
         output.write_camera.update(this.renderer, this.scene);
         output.swap();

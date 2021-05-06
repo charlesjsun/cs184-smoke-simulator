@@ -47,6 +47,8 @@ class Solver {
         this.shouldAddBuoyancy = buoyancy;
         this.buoyancyDirection = buoyancyDirection;
 
+        this.vorticityWeight = 0.2;
+
         this.shouldAddExternalDensity = false;
         this.externalDensityPos = null;
         this.externalDensityRadius = 0.01;
@@ -98,7 +100,7 @@ class Solver {
 
         // vorticity confinement for smoke
         this.curl.compute(this.velocity, this.vorticity);
-        this.vorticityConf.compute(this.velocity, this.vorticity, this.velocity);
+        this.vorticityConf.compute(this.velocity, this.vorticity, this.velocity, this.vorticityWeight);
         
         // projection
         this.divergence.compute(this.velocity, this.velocityDivergence);

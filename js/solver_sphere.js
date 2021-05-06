@@ -37,6 +37,8 @@ class SolverSphere {
         this.curl = new CurlSphere(renderer, this.dx);
         this.vorticityConf = new VorticityConfSphere(renderer, this.dt, this.dx);
 
+        this.vorticityWeight = 0.2;
+
         this.externalDensity = new ExternalDensitySphere(renderer);
         this.externalVelocity = new ExternalVelocitySphere(renderer);
 
@@ -74,7 +76,7 @@ class SolverSphere {
 
         // vorticity confinement for smoke
         this.curl.compute(this.velocity, this.vorticity);
-        this.vorticityConf.compute(this.velocity, this.vorticity, this.velocity);
+        this.vorticityConf.compute(this.velocity, this.vorticity, this.velocity, this.vorticityWeight * 7.5);
 
         // projection
         this.divergence.compute(this.velocity, this.velocityDivergence);
