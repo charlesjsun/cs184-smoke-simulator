@@ -1,10 +1,11 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 import { Solver } from "./solver.js"
 import { SolverSphere } from "./solver_sphere.js"
+import {ParametricGeometries} from "https://unpkg.com/three@0.119.0/examples/jsm/geometries/ParametricGeometries.js";
 
 let renderer;
 let camera, scene;
-let mesh, material;
+let mesh, material, line_seg;
 
 let solver;
 
@@ -29,6 +30,29 @@ let raycaster;
 let settings;
 let gui;
 
+function mobius3d ( u, t, target ) {
+
+    // volumetric mobius strip
+
+    u *= Math.PI;
+    t *= 2 * Math.PI;
+
+    u = u * 2;
+    var phi = u / 2;
+    var major = 2.25, a = 0.125, b = 0.65;
+    var scale = 5;
+
+    var x, y, z;
+
+    x = a * Math.cos( t ) * Math.cos( phi ) - b * Math.sin( t ) * Math.sin( phi );
+    z = a * Math.cos( t ) * Math.sin( phi ) + b * Math.sin( t ) * Math.cos( phi );
+    y = ( major + x ) * Math.sin( u );
+    x = ( major + x ) * Math.cos( u );
+
+    target.set( scale * x, scale * y, scale * z );
+
+}
+
 // Camera rotation stuff
 let onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
 let lon = 90, lat = 0;
@@ -47,15 +71,16 @@ function Settings() {
 
     // Buoyancy
     this.buoyancy = false;
-	this.buoyancyDirection = 90.0;
+	  this.buoyancyDirection = 90.0;
     
     // Object rendered
-    this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube"];
+    this.objects = ["Torus", "Plane", "Sphere", "Mobius Strip", "Klein Bottle", "Cube", "Parametric Sphere"];
     this.object = this.objects[0];
 
-	// Rotation Speed
-	this.rotx = 0.0;
-	this.roty = 0.0;
+	  // Rotation Speed
+    this.rotx = 0.0;
+	  this.roty = 0.0;
+
 }
 
 function recreateSolver() {
@@ -90,6 +115,8 @@ function recreateScene() {
         cameraDist = 20;
         camera.position.z = cameraDist;
         let geometry = new THREE.SphereGeometry(10, 32, 32);
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
 
         material = new THREE.ShaderMaterial({
             uniforms: { map: { } },
@@ -114,6 +141,7 @@ function recreateScene() {
         
         scene = new THREE.Scene();
         scene.add(mesh);
+        scene.add(line_seg);
 
         scene.background = new THREE.Color(0xeeeeee);
 
@@ -128,11 +156,14 @@ function recreateScene() {
         cameraDist = 30;
         camera.position.z = cameraDist;
         let geometry = new THREE.TorusGeometry(12, 5, 48, 100);
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
         mesh = new THREE.Mesh(geometry, material);
 
         scene = new THREE.Scene();
         scene.add(mesh);
+        scene.add(line_seg);
 
         scene.background = new THREE.Color(0xeeeeee);
 
@@ -150,8 +181,62 @@ function recreateScene() {
         scene = new THREE.Scene();
         scene.add(mesh);
 
-    } else {
-        console.log("Support not added yet for", settings.object);
+    } else if (settings.object == "Mobius Strip") {
+      
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        let geometry = new THREE.ParametricGeometry( mobius3d, 25, 25 );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        // material = new THREE.MeshBasicMaterial({ color: 0x00ff00 } )
+        mesh = new THREE.Mesh(geometry,material);
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+
+        scene = new THREE.Scene();
+        scene.add(mesh);
+        scene.add(line_seg);
+        scene.background = new THREE.Color(0xeeeeee);
+      
+    } else if (settings.object === "Klein Bottle") {
+
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        let geometry = new THREE.ParametricGeometry( ParametricGeometries.klein, 25, 25 );
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        mesh = new THREE.Mesh(geometry, material);
+        scene = new THREE.Scene();
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        scene.add(mesh);
+        scene.add(line_seg);
+        scene.background = new THREE.Color(0xeeeeee);
+      
+    } else if (settings.object === "Cube") {
+      
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        let geometry = new THREE.BoxGeometry( 10, 10, 10 );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        mesh = new THREE.Mesh(geometry, material);
+        scene = new THREE.Scene();
+        scene.add(mesh);
+        scene.background = new THREE.Color(0xeeeeee);
+      
+    }else if (settings.object === "Parametric Sphere") {
+
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera.position.z = 30;
+        // let geometry = new ParametricGeometries.SphereGeometry(5, 32, 32)
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        let geometry = new THREE.SphereGeometry( 10, 25, 25 );
+        line_seg = new THREE.LineSegments( geometry, lineMaterial );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        mesh = new THREE.Mesh(geometry, material);
+        scene = new THREE.Scene();
+        scene.add(mesh);
+        scene.add(line_seg)
+        scene.background = new THREE.Color(0xeeeeee);
+        
     }
     
 }
@@ -172,6 +257,7 @@ function init() {
     settings = new Settings();
     
     gui.add(settings, "smokeRadius", 0.01, 0.50, 0.01);
+
     gui.add(settings, "rotx", 0.0, 2.0, 0.05);
     gui.add(settings, "roty", 0.0, 2.0, 0.05);
     
@@ -220,13 +306,12 @@ function init() {
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('mousemove', onMouseMove);
-    // document.addEventListener("contextmenu", onContextMenu, false);
 
 }
 
 function onWindowResize() {
 
-    width = document.getElementById('topnav').offsetWidth; //window.innerWidth;
+    width = document.getElementById('topnav').offsetWidth;
     height = window.innerHeight - document.getElementById('topnav').offsetHeight;;
 
     camera.aspect = width / height;
@@ -390,13 +475,13 @@ function animate(time) {
     smokeColor.z = Math.min(Math.max(smokeColor.z + (Math.random() - 0.5) * 0.1, 0.0), 1.0);
 
     solver.step(time);
-
-	if (settings.roty != 0.0) {
-		mesh.rotation.y = settings.roty * time / 5000.0;
-	}
-	if (settings.rotx != 0.0) {
-		mesh.rotation.x = settings.rotx * time / 5000.0;
-	}
+  
+    if (settings.roty != 0.0) {
+        mesh.rotation.y = settings.roty * time / 5000.0;
+    }
+    if (settings.rotx != 0.0) {
+        mesh.rotation.x = settings.rotx * time / 5000.0;
+    }
     
     if (settings.object === "Sphere") {
         material.uniforms.map.value = solver.getTexture();
