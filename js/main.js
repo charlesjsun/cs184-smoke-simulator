@@ -1,6 +1,7 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.128.0";
 import { Solver } from "./solver.js"
 import { SolverSphere } from "./solver_sphere.js"
+import { SolverParametric } from "./solver_parametric.js"
 import {ParametricGeometries} from "https://unpkg.com/three@0.119.0/examples/jsm/geometries/ParametricGeometries.js";
 
 let renderer;
@@ -54,6 +55,22 @@ function mobius3d ( u, t, target ) {
 
 }
 
+function torusParametric(u, v, target) {
+
+    const r = 5.0;
+    const R = 12.0;
+
+    u = u * 2.0 * Math.PI;
+    v = v * 2.0 * Math.PI;
+
+    let x = r * Math.sin(v);
+    let y = (R + r * Math.cos(v)) * Math.cos(u);
+    let z = (R + r * Math.cos(v)) * Math.sin(u);
+
+    target.set(x, y, z);
+
+}
+
 // Camera rotation stuff
 let onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
 let lon = 90, lat = 0;
@@ -102,6 +119,12 @@ function recreateSolver() {
         const solverSize = 250;
         solver = new SolverSphere(renderer, solverSize);
 
+    } else if (settings.object === "Parametric Torus (WIP)") {
+
+        const solverHeight = 250;
+        const solverWidth = Math.floor(solverHeight * width / height);
+        solver = new SolverParametric(renderer, solverWidth, solverHeight);
+ 
     } else {
 
         const solverHeight = 250;
@@ -123,6 +146,7 @@ function recreateScene() {
         cameraDist = 20;
         camera.position.z = cameraDist;
         let geometry = new THREE.SphereGeometry(10, 32, 32);
+        // let geometry = new THREE.BoxGeometry( 10, 10, 10 );
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
         line_seg = new THREE.LineSegments(new THREE.WireframeGeometry(geometry), lineMaterial);
 
@@ -167,6 +191,31 @@ function recreateScene() {
         cameraDist = 30;
         camera.position.z = cameraDist;
         let geometry = new THREE.TorusGeometry(12, 5, 48, 100);
+        const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+        line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
+        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        mesh = new THREE.Mesh(geometry, material);
+        canRotate = true;
+
+        scene = new THREE.Scene();
+        scene.add(mesh);
+        if (settings.wireframe) {
+            scene.add(line_seg);
+        }
+
+        scene.background = new THREE.Color(0xeeeeee);
+
+        let grid = new THREE.GridHelper(60, 15);
+        grid.position.y = -17.0;
+        scene.add(grid);
+
+    } else if (settings.object === "Parametric Torus (WIP)") {
+
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        canMoveCamera = true;
+        cameraDist = 30;
+        camera.position.z = cameraDist;
+        let geometry = new THREE.ParametricGeometry(torusParametric, 100, 48); //new THREE.TorusGeometry(12, 5, 48, 100);
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
         line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
         material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
@@ -244,21 +293,44 @@ function recreateScene() {
       
     } else if (settings.object === "Cube") {
       
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
-        camera.position.z = 20;
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        canMoveCamera = true;
         cameraDist = 20;
+        camera.position.z = cameraDist;
+        // let geometry = new THREE.SphereGeometry(10, 32, 32);
         let geometry = new THREE.BoxGeometry( 10, 10, 10 );
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
-        line_seg = new THREE.LineSegments( new THREE.WireframeGeometry(geometry), lineMaterial );
-        material = new THREE.MeshBasicMaterial({map: solver.getTexture()})
+        line_seg = new THREE.LineSegments(new THREE.WireframeGeometry(geometry), lineMaterial);
+
+        material = new THREE.ShaderMaterial({
+            uniforms: { map: { } },
+            vertexShader: `
+            varying vec3 v_position;
+            void main() {
+                v_position = position;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+            `,
+            fragmentShader: `
+            varying vec3 v_position;
+            uniform samplerCube map;
+            void main() {
+                vec3 normal = normalize(v_position);
+                vec3 color = textureCube(map, normal).xyz * 1.0;
+                gl_FragColor = vec4(color, 1.0);
+            }
+            `
+        })
         mesh = new THREE.Mesh(geometry, material);
-        canRotate = true;
+        canRotate = false;
+        
         scene = new THREE.Scene();
         scene.add(mesh);
-        scene.background = new THREE.Color(0xeeeeee);
         if (settings.wireframe) {
             scene.add(line_seg);
         }
+
+        scene.background = new THREE.Color(0xeeeeee);
 
         let grid = new THREE.GridHelper(60, 15);
         grid.position.y = -10.0;
@@ -316,7 +388,8 @@ function init() {
 
     gui.add(settings, "object", settings.objects).onChange(function(object) {
         settings.object = object;
-        if ((currObject === "Sphere" && object !== "Sphere") || (currObject !== "Sphere" && object === "Sphere")) {
+        if (((currObject === "Sphere" || settings.object === "Cube") && (object !== "Sphere" && object !== "Cube"))
+            || ((currObject !== "Sphere" && settings.object !== "Cube") && (object === "Sphere" || settings.object === "Cube"))) {
             recreateSolver();
         }
         currObject = object;
@@ -460,7 +533,7 @@ function getSolverPos(mouseX, mouseY) {
     raycaster.setFromCamera(new THREE.Vector2(startX, startY), camera);
     const intersects = raycaster.intersectObjects(scene.children);
 
-    if (settings.object == "Sphere") {
+    if (settings.object == "Sphere" || settings.object == "Cube") {
 
         for (let intersect of intersects) {
             if (intersect.object === mesh && intersect.point) {
@@ -486,7 +559,7 @@ function getSolverPos(mouseX, mouseY) {
 
 function getSolverVelocity(pos, prevPos) {
 
-    if (settings.object == "Sphere") {
+    if (settings.object == "Sphere" || settings.object == "Cube") {
 
         return new THREE.Vector3(pos.x - prevPos.x, pos.y - prevPos.y, pos.z - prevPos.z);
 
@@ -575,7 +648,7 @@ function animate(time) {
         line_seg.rotation.x += settings.rotx * deltaTime / 5000.0;
     }
     
-    if (settings.object === "Sphere") {
+    if (settings.object === "Sphere" || settings.object == "Cube") {
         material.uniforms.map.value = solver.getTexture();
     } else {
         material.setValues({map: solver.getTexture()});
