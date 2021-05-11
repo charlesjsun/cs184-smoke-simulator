@@ -114,7 +114,7 @@ function Settings() {
 
 function recreateSolver() {
 
-    if (settings.object === "Sphere") {
+    if (settings.object === "Sphere" || settings.object === "Cube") {
 
         const solverSize = 250;
         solver = new SolverSphere(renderer, solverSize);
@@ -247,7 +247,7 @@ function recreateScene() {
 
     } else if (settings.object == "Mobius Strip") {
       
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         camera.position.z = 20;
         cameraDist = 20;
         let geometry = new THREE.ParametricGeometry( mobius3d, 25, 25 );
@@ -271,7 +271,7 @@ function recreateScene() {
       
     } else if (settings.object === "Klein Bottle") {
 
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         camera.position.z = 20;
         cameraDist = 20;
         let geometry = new THREE.ParametricGeometry( ParametricGeometries.klein, 25, 25 );
@@ -338,7 +338,7 @@ function recreateScene() {
       
     }else if (settings.object === "Planar Sphere") {
 
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         camera.position.z = 20;
         cameraDist = 20;
         const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
@@ -388,8 +388,8 @@ function init() {
 
     gui.add(settings, "object", settings.objects).onChange(function(object) {
         settings.object = object;
-        if (((currObject === "Sphere" || settings.object === "Cube") && (object !== "Sphere" && object !== "Cube"))
-            || ((currObject !== "Sphere" && settings.object !== "Cube") && (object === "Sphere" || settings.object === "Cube"))) {
+        if (((currObject === "Sphere" || currObject === "Cube") && (object !== "Sphere" && object !== "Cube"))
+            || ((currObject !== "Sphere" && currObject !== "Cube") && (object === "Sphere" || object === "Cube"))) {
             recreateSolver();
         }
         currObject = object;
